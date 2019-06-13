@@ -36,6 +36,19 @@ regtest_redirect_stdout_to() {
     "${@:2}" >"$1"
 }
 
+# regtest_env <var>=<val>... <command...>
+# Like `env`, but accepts has the advantage that it accepts shell functions for the <command...>
+# argument. Runs the command in a subshell.
+regtest_env() {
+(
+    while [[ "$1" == *=* ]]; do
+        export "$1"
+        shift
+    done
+    "$@"
+)
+}
+
 # regtest_launch_with_server <ready-regex> <server-command> -- <main-command>
 # Runs <server-command> in the background, waits for <ready-regex> to appear in the server's
 # output, then launches <main-command>.
