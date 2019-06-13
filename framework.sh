@@ -140,6 +140,8 @@ regtest() {
 
     regtest_kill_children_on_exit
     (
+        # Running `regtest_impl` in a subshell ensures it cannot modify the state of the test
+        # suite subshell.
         _name=$name
         _outputs="${!output_set[@]}"
         _tmpfiles="${!tmpfile_set[@]}"
@@ -445,6 +447,7 @@ regtest_run_suites() {
     shift
 
     regtest_start
+    regtest_on_exit regtest_finish
 
     for suite in $(
         if [[ "$regtest_run_suites_in_random_order" == 1 ]]; then
@@ -458,8 +461,6 @@ regtest_run_suites() {
         timeout=$(regtest_suite_timeout "$dir/$suite.sh")
         regtest_suite_timeout=$timeout regtest_run_suite "$suite" . "$dir/$suite.sh"
     done
-
-    regtest_finish
 }
 
 # == Global Configuration

@@ -163,6 +163,6 @@ regtest meta-checksum-file-bad-checksum-no-diff \
 
 ##################################################################################################
 }
-regtest_run_suite metasuite metasuite
 
-regtest_finish
+regtest_on_exit 'regtest_finish'
+regtest_run_suite metasuite metasuite
