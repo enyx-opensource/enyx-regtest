@@ -18,7 +18,7 @@ $(shell \
         echo $(prefix) $(libdir) $(datadir) $(mandir) $(man7dir) $(docdir); \
     } >$(build)/conf.new; \
     touch -a $(build)/conf; \
-    diff >&2 -u0 $(build)/conf $(build)/conf.new || mv $(build)/conf.new $(build)/conf \
+    diff >&2 -U0 $(build)/conf $(build)/conf.new || mv $(build)/conf.new $(build)/conf \
 )
 
 # == Rules
