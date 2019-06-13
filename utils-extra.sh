@@ -36,6 +36,11 @@ regtest_redirect_stdout_to() {
     "${@:2}" >"$1"
 }
 
+# regtest_from_dir <dir> <command...>
+regtest_from_dir() {
+    cd "$1" && "${@:2}"
+}
+
 # regtest_env <var>=<val>... <command...>
 # Like `env`, but accepts has the advantage that it accepts shell functions for the <command...>
 # argument. Runs the command in a subshell.
