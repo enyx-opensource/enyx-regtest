@@ -1,0 +1,294 @@
+enyx-regtest(7)
+===============
+
+Name
+----
+enyx-regtest - Regression and Integration Test Framework
+
+Description
+-----------
+
+*Enyx-regtest* is a framework for writing integration and regression tests
+in bash.
+
+Terminology
+-----------
+
+We will use the following terms throughout this manual:
+
+Test case (or simply "test")::
+    A single test, run with the `regtest` command.
+Test suite (or just "suite")::
+    A sequence of test cases, usually enclosed in a single file.
+Test suite set (or just "suite set")::
+    A set of test suites, defined by calling `regtest_run_suites`.
+Main script::
+    The entry point script for a suite set. Should be named 'run-tests' or
+    similar.
+
+Running Tests
+-------------
+
+Here, we will assume that the entry point is an executable script called
+'run-tests' which makes use of the default script template, 'run-tests.sh'.
+Running the script without arguments will result in all tests being run.
+The default script provides the following command line arguments:
+
+[source]
+include::{includedir}/help.txt[]
+
+Environment
+~~~~~~~~~~~
+
+The following environment variables are recognised:
+
+REGTEST_INPUTDIR::
+    Input directory. Used in expanding `{}`: `{}` expands to
+    `$REGTEST_INPUTDIR$regtest_dir` where 'regtest_dir' is an optional
+    suite-local variable.
+    Default: `./inputs`.
+REGTEST_OUTDIR::
+    Output directory, where `{out.<ext>}` files are placed.
+    Default: `./out`.
+REGTEST_TMPDIR::
+    Temporary directory, where `{tmp.<ext>}` files are placed.
+    Default: `$REGTEST_OUTDIR/tmp` (`./out/tmp`)
+REGTEST_REFDIR::
+    Directory relative to which reference files will be placed and
+    retrieved (`{ref}`).
+    Default: `./refs`.
+REGTEST_LOGDIR::
+    Directory in which logs will be placed.
+    Default: `./log`.
+REGTEST_SUITE_TIMEOUT::
+    Maximum amount of time a test suite can take. If a suite exceeds this
+    timeout, it will be killed and the next one, if any, will begin. Can be
+    adjusted per-suite using 'regtest-timeout-factor'. See
+    'regtest_run_suites' for details.
+    Default: `5m` (5 minutes)
+
+Writing Tests
+-------------
+
+As with many test frameworks, 'enyx-regtest' tests are split into test
+suites, usually one per file.
+
+Although there is no absolute requirement that tests within a test suite
+share a common prefix, this is recommended so as to make it easier to run,
+list, or print all tests in a given suite (and no other). For instance, for
+a test suite file —named e.g. `foo.sh`— where all test names start with
+`foo-`, one can easily run these tests alone with the command:
+`./run-tests foo-*`.
+
+Configuration Variables
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Configuration variables (but not the environment variables described above)
+can be redefined _after_ ``source``ing `framework.sh` (directly, or
+indirectly through `run-tests.sh`):
+
+regtest_forward_output_pattern::
+    Lines of a 'regtest' command's output (on stderr or stdout) matching
+    this extended regex will be forwarded to standard output (instead of
+    being written only to the log file). Lines containing `[REGTEST]` are
+    always forwarded however.
+    Default: `''` (none)
+regtest_run_suites_in_random_order::
+    Whether to launch test suites in random order. Tests within a test suite
+    are always run in the order they are written in. Set to the empty string
+    to disable.
+    Default: `1`
+regtest_name_regex::
+    Bash regex which test names _must_ match. Useful for keeping things nice
+    and consistent. Must contain a parenthesised part indicating the actual
+    name part. This makes it possible to have a version suffix for instance.
+    Default: `^([a-z0-9-]+)$`
+
+This list is not exhaustive but the other variables are already configurable
+either through the environment variables described in the previous section
+or through the command-line options provided by `run-tests.sh`. If you still
+wish to configure these variables manually, see `framework.sh`, section
+``Global Configuration'', for the full list of configuration variables.
+
+Main Functions
+~~~~~~~~~~~~~~
+
+These are the functions used to define tests and test suites.
+
+include::{includedir}/function-doc/regtest.adoc[]
+
+include::{includedir}/function-doc/regtest_run_suites.adoc[]
+
+include::{includedir}/function-doc/regtest_run_suite_func.adoc[]
+
+The following functions are more primitive and are already called by
+'regtest_run_suites' and 'regtest_run_suite_func'. They should only be
+called directly if one requires a more customised behaviour.
+
+include::{includedir}/function-doc/regtest_start.adoc[]
+
+include::{includedir}/function-doc/regtest_run_suite.adoc[]
+
+include::{includedir}/function-doc/regtest_finish.adoc[]
+
+include::{includedir}/function-doc/regtest_print_summary.adoc[]
+
+//TODO
+// Resources
+// ~~~~~~~~~
+
+// Resources identify the amounts of various resources available to the test
+// processes. A set of all available resources is declared at startup, and each
+// test declares what resources it requires and in what amounts (using the
+// 'regtest' function's `-r` option). If or when enough resources are
+// available, the test is launched. This system thereby enables speeding up the
+// whole set of test suites by launching multiple tests in parallel.
+
+// By default, two resources, 'cpu' and 'mem' are populated; 'cpu' with the
+// number of accessible CPU cores, and 'mem' with the amount of available RAM
+// _in megabytes_ at the moment of initialisation (does not include swap).
+// Any number of resources with arbitary (alphanumeric) names can be declared
+// using 'regtest_init_resources'.
+
+// regtest_init_resources <resource>:<amount>...::
+//     Initialise the set of resources.
+//     Example:
+// +
+//     regtest_init_resources cpu=16 mem=64000 fpga=3
+
+Test Entry-Point
+~~~~~~~~~~~~~~~~
+
+There is no `enyx-regtest` tool to be called directly by users. Instead a
+test script should be placed within the test directory. The script should
+start off by ``source``ing the files it requires from the regtest framework.
+These will at the very least include `framework.sh`.
+
+If the framework is expected to be installed, one can use the pkg-config to
+find the location of the files:
+
+----
+. $(pkg-config --variable=libdir enyx-regtest)/framework.sh
+----
+
+If, on the other hand, the framework is provided with the tests (e.g. as a
+git submodule), ``source``ing a relative path will do:
+
+----
+. enyx-regtest/lib/framework.sh
+----
+
+Framework Files
+~~~~~~~~~~~~~~~
+
+run-tests.sh::
+    Basis for test scripts.
+
+framework.sh::
+    The main framework file. Provides the functions described in this manual
+    ('regtest', 'regtest_run_suites', ...).
+
+utils.sh::
+    Utilities used by `framework.sh`. Some of these could also come in handy
+    when writing tests.
+
+utils-extra.sh::
+    Extra utilities that might come in handy when writing tests. Not used by
+    `framework.sh`.
+
+//TODO
+// resources.sh::
+//     Resource handling and parallel execution of tests. Sourced by
+//     `framework.sh`.
+
+checksum-files.sh::
+    If ``source``d, overrides functions 'regtest_ref_checksum' and
+    'regtest_out_checksum' so that reference file checksums are stored to a
+    file (by default `reference-md5sums`) and so that files are compared by
+    their checksums.
+
+Miscellaneous Utilities (`utils-extra.sh`)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+General-purpose helper functions for use within the 'regtest' command (or
+elsewhere) can be found in `utils-extra.sh`, which can be ``source``d from
+the main script or from individual test suites as needed.
+
+include::{includedir}/function-doc/regtest_launch_with_tty_hack.adoc[]
+
+include::{includedir}/function-doc/regtest_temp_pipe.adoc[]
+
+include::{includedir}/function-doc/regtest_redirect_stdout_to.adoc[]
+
+include::{includedir}/function-doc/regtest_from_dir.adoc[]
+
+include::{includedir}/function-doc/regtest_env.adoc[]
+
+include::{includedir}/function-doc/regtest_launch_with_server.adoc[]
+
+include::{includedir}/function-doc/regtest_launch_in_sequence.adoc[]
+
+include::{includedir}/function-doc/regtest_retry_and_pray.adoc[]
+
+include::{includedir}/function-doc/regtest_expect_exit_status.adoc[]
+
+include::{includedir}/function-doc/regtest_expect_grep.adoc[]
+
+Plumbing (`framework.sh`)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following functions are designed to be monkey-patched (redefined) in
+case one wishes to customize 'enyx-regtest''s behaviour further.
+
+NOTE: These functions may be removed or otherwise have their interfaces
+changed across minor version updates.
+
+include::{includedir}/function-doc/regtest_impl.adoc[]
+
+include::{includedir}/function-doc/regtest_launch.adoc[]
+
+include::{includedir}/function-doc/regtest_ref_checksum.adoc[]
+
+include::{includedir}/function-doc/regtest_out_checksum.adoc[]
+
+include::{includedir}/function-doc/regtest_ref_diff.adoc[]
+
+include::{includedir}/function-doc/regtest_ref_compare.adoc[]
+
+include::{includedir}/function-doc/regtest_ref_compare_impl.adoc[]
+
+Example
+-------
+
+This example (which can be found in the `example` directory of the
+enyx-regtest repository) is a very small test suite for the asciidoctor
+document generator. It is organised in the following file hierarchy:
+
+    .
+    ├── run-tests
+    ├── tests
+    │   └── suite1.sh
+    └── refs
+        ├── suite1-enyx-regtest-manpage.7
+        └── suite1-enyx-regtest-html.html
+
+Where 'run-tests' is the executable test script, 'tests' is the directory
+containing the test suite files, and 'refs' is the directory containg the
+(generated) reference files for all tests.
+
+.`run-tests`
+[source,bash]
+----
+include::example/run-tests[]
+----
+
+.`tests/suite1.sh`
+[source,bash]
+----
+include::example/tests/suite1.sh[]
+----
+
+Bugs
+----
+On bash 4.2 (the default on centos 7), some background subshells may fail to
+be killed when intended. It is recommended to upgrade to bash ≥4.3.

@@ -2,7 +2,7 @@
 
 # = Extra utilities (not required by framework.sh)
 
-# regtest_launch_with_tty_hack <command...>
+## regtest_launch_with_tty_hack <command...>
 # Replace the `isatty (3)` function with one that always returns true for stdout and stderr in
 # order to (hopefully) force programs to always colour and line-buffer their output. Can have some
 # pretty nasty side-effects with some programs. Requires gcc.
@@ -21,7 +21,7 @@ regtest_launch_with_tty_hack() {
     fi
 }
 
-# regtest_temp_pipe
+## regtest_temp_pipe
 # Creates a temporary pipe file in /tmp and returns its path. It is the caller's responsibility to
 # clean it up.
 regtest_temp_pipe() {
@@ -31,19 +31,21 @@ regtest_temp_pipe() {
     printf '%s\n' "$pipe"
 }
 
-# regtest_redirect_stdout_to <file> <command...>
+## regtest_redirect_stdout_to <file> <command...>
+# Redirect <command...>'s standard output to <file>.
 regtest_redirect_stdout_to() {
     "${@:2}" >"$1"
 }
 
-# regtest_from_dir <dir> <command...>
+## regtest_from_dir <dir> <command...>
+# Run <command...> from directory <dir>.
 regtest_from_dir() {
     cd "$1" && "${@:2}"
 }
 
-# regtest_env <var>=<val>... <command...>
-# Like `env`, but accepts has the advantage that it accepts shell functions for the <command...>
-# argument. Runs the command in a subshell.
+## regtest_env <var>=<val>... <command...>
+# Like `env`, but has the advantage that it accepts shell functions for the <command...> argument.
+# Runs the command in a subshell.
 regtest_env() {
 (
     while [[ "$1" == *=* ]]; do
@@ -54,9 +56,9 @@ regtest_env() {
 )
 }
 
-# regtest_launch_with_server <ready-regex> <server-command> -- <main-command>
+## regtest_launch_with_server <ready-regex> <server-command> -- <main-command>
 # Runs <server-command> in the background, waits for <ready-regex> to appear in the server's
-# output, then launches <main-command>.
+# output, then launches <main-command>. Kills the server after the main command exits.
 regtest_launch_with_server() {
 (
     local ready_regex=$1
@@ -97,10 +99,10 @@ regtest_launch_with_server() {
 )
 }
 
-# regtest_launch_in_sequence [--*] <command...> [--* <command...> [--* <...>]]
-# Launches `--*`-separated commands one after the other. Stops is one command returns non-zero.
-# If the first argument matches regex ^---*$, it will be used as separator, otherwise `--` will be
-# used as separator.
+## regtest_launch_in_sequence [--\*] <command...> [--* <command...> [--* <...>]]
+# Launches `--*`-separated commands one after the other. Stops if one command returns non-zero.
+# If the first argument matches regex `^---*$`, it will be used as separator, otherwise `--` will
+# be used as separator.
 regtest_launch_in_sequence() {
     local sep=--
     if [[ "$1" =~ ^---*$ ]]; then
@@ -120,8 +122,10 @@ regtest_launch_in_sequence() {
     done
 }
 
-# regtest_retry_and_pray [n=5] <command>
-# Try the given command `n` times (retry `n - 1` times), until it succeeds.
+## regtest_retry_and_pray [n=5] <command...>
+# Try the given <command...> up to `n` times (retry `n - 1` times), until it succeeds. Returns the
+# last of <command...>'s return codes. Can be useful for less important tests that are known to
+# fail occasionally (...and don't need to be fixed right away).
 regtest_retry_and_pray() {
     local i n=5 ret
     [[ "$1" =~ ^[0-9]+$ ]] && { n=$1; shift; }
@@ -136,10 +140,10 @@ regtest_retry_and_pray() {
     return $ret
 }
 
-# regtest_expect_exit_status <n> <command...>
-# Return 0 if the exit status of <command...> is <n>. Useful for checking that errors are properly
-# detected and reported. Also prevents lines containing "[REGTEST]" or the
-# `regtest_forward_output_pattern` from being forwarded.
+## regtest_expect_exit_status <n> <command...>
+# Return 0 if the exit status of <command...> is <n>, 1 otherwise. Useful for checking that errors
+# are properly detected and reported. Also prevents lines containing "[REGTEST]" or the
+# 'regtest_forward_output_pattern' from being forwarded.
 regtest_expect_exit_status() {
     local n=$1 pipestatus
     shift
@@ -163,9 +167,10 @@ regtest_expect_exit_status() {
     return 0
 }
 
-# regtest_expect_grep <pattern> <command...>
-# Returns 0 if the awk regex <pattern> is found in <command...>'s stdout or stderr, and 1 if not
-# found. The <command...>'s return code will be ignored.
+## regtest_expect_grep <pattern> <command...>
+# Returns 0 if the awk regex <pattern> is found in <command...>'s stdout or stderr, and 1 if it is
+# not found. Kills the command and exits once the pattern is found. The command's return code will
+# be ignored.
 regtest_expect_grep() {
     local pat=${1//\//\\/}
     shift

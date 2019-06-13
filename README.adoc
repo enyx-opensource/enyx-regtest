@@ -1,0 +1,104 @@
+enyx-regtest
+============
+
+A framework for writing regression and integration tests in bash.
+
+NOTE: This framework is not designed to test shell or bash code in
+particular, but commands/executables in general. The choice of bash as the
+framework's language is due merely to its being an especially convenient
+language for running commands.
+
+*General concept:* The framework provides a means of defining tests which
+consist for the most part of a single shell command each. If the command
+exits unsuccessfully an error is reported immediately, otherwise the
+command's outputs are compared to reference outputs, and if they differ, an
+error is also reported and the difference printed in a human-readable
+format.
+
+*Use case:* Testing systems which have discrete inputs and outputs,
+especially using large-scale real-world data as input, and where command
+execution may take a long time (seconds, minutes, or perhaps hours).
+
+As a regression testing tool, the idea is that at any given point in time,
+one can write a test and ``commit'' the corresponding generated output as a
+reference output. The test suite is to be run after every change to the
+tested program's code, so that deviations of the actual output from the
+reference output may be detected and reported. When the test framework
+detects changes, it reports an error, along with a short partial comparison
+of the old and new files, and the path to a file where a full comparison has
+been stored. The user is then expected to analyse the differences using this
+output, and if the changes are as expected, the new files may be commited in
+place of the previous reference output, otherwise, the user has just found a
+regression in the program being tested!
+
+*Other features:*
+
+- A *summary* (one line per test) is printed after all tests have been run.
+
+- Concise output. *Standard error* and *standard output* lines which are
+  considered non-critical are logged to a separate log file by default. So
+  if you have a command that produces copious logs, they need not clutter
+  the test's output. What lines are considered critical can be configured
+  through a regular expression.
+
+- A *resource management* module which enables *parallel execution* of
+  tests (coming soon™).
+
+- Test *suites*.
+
+- *Timeouts*. If a test suite exceeds a given timeout, it will be cancelled
+  and this will be reported as an error.
+
+- *Configurable* and *extensible*. For instance, one can easily redefine the
+  comparison function so that, instead of performing a simple `diff` between
+  the reference and output files, it uses a custom tool.
+
+- A *command-line interface*, to selectively run or list tests, and more...
+
+Installation
+------------
+
+Dependencies
+~~~~~~~~~~~~
+
+This framework has few dependencies except for `bash` (≥4.2, ≥4.3
+recommended) and the standard unix utilities. It does however require GNU
+awk (a.k.a. `gawk`) (≥4), and by default `git` to display pretty-printed
+diffs (the diff command can be changed by monkey-patching `regtest_diff` or
+`regtest_ref_compare_impl`). It therefore runs well on ubuntu ≥16.04 and
+debian ≥8, and runs decently on centos 7. To generate the html and man
+documentation, `asciidoctor` is needed.
+
+To install dependencies for debian or ubuntu:
+
+    apt-get install gawk moreutils git asciidoctor
+
+For centos:
+
+    yum install make moreutils gawk git asciidoctor
+
+Build and installation
+~~~~~~~~~~~~~~~~~~~~~~
+
+- To test the framework: `make test`.
+- To generate the documentation: `make doc`.
+- The framework itself is just a bunch of shell scripts and does not require
+  any kind of compilation.
+- To install to /usr/local: `make install`.
+- To install somewhere else: `make install prefix=<path>`.
+
+Further Reading
+---------------
+
+- <<enyx-regtest.adoc#,The manual page>>.
+- An link:example[example] (testing `asciidoctor`).
+
+Contributing
+------------
+
+Before submitting patches, please run the continuous integration target,
+`make ci`, and check that it returns 0 (no errors).
+
+License
+-------
+GPL v3

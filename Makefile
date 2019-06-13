@@ -21,9 +21,13 @@ $(shell \
     diff >&2 -U0 $(build)/conf $(build)/conf.new || mv $(build)/conf.new $(build)/conf \
 )
 
+safer_rm_rf = @[ $(words $(1)) != 1 ] && exit 1; echo rm -rf -- $(1); rm -rf -- $(1)
+
+lib := lib/framework.sh lib/utils.sh lib/utils-extra.sh lib/checksum-files.sh lib/run-tests.sh
+
 # == Rules
 
-all: $(build)/enyx-regtest.pc
+all: man html $(build)/enyx-regtest.pc
 
 # === pkgconfig
 
@@ -35,9 +39,42 @@ $(build)/enyx-regtest.pc: enyx-regtest.pc.in $(build)/conf
 	        print \
 	}' $< > $@
 
-# === Test
+# === Documentation
 
-safer_rm_rf = @[ $(words $(1)) != 1 ] && exit 1; echo rm -rf -- $(1); rm -rf -- $(1)
+html := enyx-regtest.html README.html example
+
+doc: man html
+html: $(addprefix $(build)/,$(html))
+man: $(build)/enyx-regtest.7
+
+$(build)/function-doc: $(lib)
+	$(call safer_rm_rf,$@)
+	mkdir -p $@ && gawk -voutdir=$@ ' \
+	    /^## [a-z0-9_]*( |$$)/ { \
+	        out = outdir "/" $$2 ".adoc"; \
+	        print substr($$0, 4) "::\n+\n--" >out; \
+	        next \
+	    } \
+	    out { \
+	        if (/^#( |$$)/) { print substr($$0, 3) >>out } \
+	        else            { print "--" >>out; out = "" } \
+	    }' \
+	    $^
+
+$(build)/example: example/run-tests example/tests/suite1.sh
+	$(call safer_rm_rf,$@)
+	mkdir -p $@ && cp -r example/run-tests example/tests $@
+
+$(build)/help.txt: tests/example/run-tests lib/run-tests.sh
+	{ cd tests/example && ./run-tests --help; } | awk '/^$$/ { exit } { print }' > $@
+
+$(build)/enyx-regtest.7: enyx-regtest.adoc $(build)/help.txt $(build)/function-doc
+	asciidoctor -aincludedir=$(build) -bmanpage $< --out-file $@
+
+$(build)/%.html: %.adoc $(build)/help.txt $(build)/function-doc
+	asciidoctor -aincludedir=$(build) $< --out-file $@
+
+# === Test
 
 prepare-tests:
 	$(call safer_rm_rf,$(build)/test-copy)
@@ -77,14 +114,16 @@ ci:
 
 # === Install
 
-lib := lib/framework.sh lib/utils.sh lib/utils-extra.sh lib/checksum-files.sh lib/run-tests.sh
-
 install: install-doc install-lib
 
+install-doc: install-man install-html
+install-man: $(build)/enyx-regtest.7
+	install -Dm644 -t$(man7dir) $^
+install-html: $(addprefix $(build)/,$(html))
+	(cd $(build) && find $(html) -type f) | xargs -I{} install -Dm644 $(build)/{} $(docdir)/{}
 install-lib: $(lib) $(build)/enyx-regtest.pc
-	install -d $(libdir)/enyx-regtest $(libdir)/pkgconfig
-	install -m 644 $(lib) $(libdir)/enyx-regtest
-	install -m 644 $(build)/enyx-regtest.pc $(libdir)/pkgconfig
+	install -Dm644 -t$(libdir)/enyx-regtest $(lib)
+	install -Dm644 -t$(libdir)/pkgconfig $(build)/enyx-regtest.pc
 
 uninstall:
 	$(call safer_rm_rf,$(man7dir)/enyx-regtest.7)

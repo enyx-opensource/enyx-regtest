@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# This is a simple example test script that does nonetheless provide a somewhat realistic use
+# case: checking the output of a document generator, namely asciidoctor.
+#
+# Note to run these script without installing enyx-regtest, you will first need to:
+#
+#     export REGTEST_LIBDIR=../lib
+#
+# The reference files —necessary for these regression tests to complete successfully— are not
+# provided since the exact output will of course depend on the specific version of asciidoctor
+# being run, and potentially, the specific versions of certain of its dependencies. In practice,
+# to ensure consistent outputs, these reference files would have to be updated in unison with the
+# development branch(es) of the tool(s) being tested, and a robust method of installing the
+# required versions of the critical dependencies might have to be provided. If you wish to test
+# out this simple example, you can simply generate the reference files yourself with:
+#
+#     mkdir refs && ./run-tests --generate
+#
+# Subsequent invocations of `./run-tests` (without `--generate`/`-g`) will check that the outputs
+# of the commands being tested are unchanged compared to these reference files.
+
+# If a `REGTEST_LIBDIR` environment variable is not already defined, try to find the regtest
+# library directory using pkg-config (which should succeed if enyx-regtest is actually installed).
+[[ -n "${REGTEST_LIBDIR-}" ]] ||
+REGTEST_LIBDIR=$(pkg-config --variable=libdir enyx-regtest) ||
+exit 1
+
+# Set the input directory (used for expanding the `{}` pattern).
+: ${REGTEST_INPUTDIR=..}
+# None of these test suites should take longer than 10 seconds on any non-dinosaur computer.
+: ${REGTEST_SUITE_TIMEOUT=10s}
+
+# Ignite the engine.
+. "$REGTEST_LIBDIR"/run-tests.sh || exit 1
+
+# Step on the gas. Note: In practice, the suites should probably be given beter names.
+regtest_run_suites tests suite1 #suite2 suite3 ...
