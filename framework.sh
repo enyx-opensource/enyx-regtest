@@ -334,7 +334,7 @@ regtest_print_summary() {
             fi
             printf "%s FAILED (%s) %s\n" "$testname" "$status" "$time"
         fi
-    done < <(sort "$_regtest_status_file") \
+    done < <(LC_ALL=C sort "$_regtest_status_file") \
          > >(column -t |
              sed -e"s/^/$regtest_print_prefix/" \
                  -e$'s/  OK  /  \e[32mOK\e[0m  /' \
