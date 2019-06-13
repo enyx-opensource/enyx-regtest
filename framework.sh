@@ -53,7 +53,9 @@ regtest_ref_compare_impl() {
     local ref=$regtest_refdir/$out_name
     local out=$regtest_outdir/$out_name
 
-    regtest_diff "$ref" "$out" | tee >(head -n30 >&2; cat >/dev/null) || return 1
+    # The `2>&1` and `| cat` below are there to force the process substitution (`>(...)`) to exit
+    # before the function does, and for that reason alone.
+    regtest_diff "$ref" "$out" | tee >(head -n30 >&2; cat >/dev/null 2>&1) | cat || return 1
     return 0
 }
 
