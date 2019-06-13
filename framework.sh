@@ -138,11 +138,14 @@ regtest() {
     [[ ${#output_set[@]} != 0 ]] && mkdir -p "$regtest_outdir"
     [[ ${#tmpfile_set[@]} != 0 ]] && mkdir -p "$regtest_tmpdir"
 
-    _name=$name
-    _outputs="${!output_set[@]}"
-    _tmpfiles="${!tmpfile_set[@]}"
-    _extra_args=(${extra_args+"${extra_args[@]}"})
-    regtest_impl "${args[@]}" ${regtest_extra_args[@]+"${regtest_extra_args[@]}"}
+    regtest_kill_children_on_exit
+    (
+        _name=$name
+        _outputs="${!output_set[@]}"
+        _tmpfiles="${!tmpfile_set[@]}"
+        _extra_args=(${extra_args+"${extra_args[@]}"})
+        regtest_impl "${args[@]}" ${regtest_extra_args[@]+"${regtest_extra_args[@]}"}
+    )
 }
 
 regtest_reset_timer() {
