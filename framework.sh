@@ -408,8 +408,8 @@ regtest_suite_timeout() {
         echo inf
     else
         gawk -vt="$(regtest_time_to_seconds "$regtest_suite_timeout"))" '
-            $1 == "#" && $2 == "regtest-timeout-factor:" { print $3 * t / 60 "m"; exit }
-            ENDFILE                                      { print t / 60 "m" }' \
+            $1 == "#" && $2 == "regtest-timeout-factor:" { print $3 * t / 60 "m"; done = 1; exit }
+            END                                          { if (!done) print t / 60 "m" }' \
             "$suite_file"
     fi
 }
@@ -441,7 +441,7 @@ regtest_finish() {
     if [[ ! -s "$_regtest_status_file" ]]; then
         return 0
     elif [[ "$(wc -l "$_regtest_status_file")" == 1\ * ]]; then
-        gawk '$2 == "ok" { exit 0 } ENDFILE { exit 1 }' "$_regtest_status_file" || return 10
+        gawk -vr=1 '$2 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file" || return 10
     else
         regtest_print_summary $(($(date +%s) - _regtest_start_time)) || return 10
     fi
