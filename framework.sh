@@ -274,6 +274,7 @@ regtest_impl() {
             regtest_printn >&2 "Output differs from reference output '%s'." \
                                "$regtest_outdir/$out_name"
             if regtest_ref_compare "$out_name"; then
+                regtest_printn "(...but found no difference during comparison!)"
                 regtest_record_status "$_name" diff
             else
                 regtest_record_status "$_name" comparator
