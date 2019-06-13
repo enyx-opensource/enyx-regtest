@@ -29,7 +29,7 @@ metarun() {
     "$@" |& replace_date_and_time >> "$out"
 }
 
-run=(metarun {out.txt} ./run-example-tests --deterministic --exclude 'slow-*')
+run=(metarun {out.txt} ./run-example-tests --deterministic)
 
 regtest meta-run-none \
     regtest_launch_in_sequence \
@@ -80,7 +80,7 @@ metarun_regtest_lines_only() {
 # suite times out, the "unicode" test suite runs.
 regtest meta-suite-timeout \
     regtest_expect_exit_status 10 \
-    regtest_env REGTEST_SUITE_TIMEOUT=.5s \
+    regtest_env REGTEST_SUITE_TIMEOUT=.5s REGTEST_EXAMPLE_SUITE_FILES='slowgrep ascii unicode' \
     metarun_regtest_lines_only {out.txt} ./run-example-tests --deterministic 'slow-*' 'unicode-*'
 
 ##################################################################################################

@@ -10,7 +10,10 @@
 
 : ${REGTEST_SUITE_TIMEOUT=5s}
 
-regtest_run_suites tests \
-    slowgrep \
-    ascii \
-    unicode
+if [[ -z "${REGTEST_EXAMPLE_SUITE_FILES-}" ]]; then
+    regtest_run_suites tests \
+        ascii \
+        unicode
+else
+    regtest_run_suites tests $REGTEST_EXAMPLE_SUITE_FILES
+fi

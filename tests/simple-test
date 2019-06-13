@@ -9,7 +9,7 @@ set -euo pipefail
 
 echo Running good tests...
 echo ---------------------
-./run-example-tests --exclude '*-fail' --exclude 'slow-*'
+./run-example-tests --exclude '*-fail'
 
 echo
 echo Running bad tests...
@@ -21,7 +21,7 @@ done
 echo
 echo Running all tests...
 echo --------------------
-./run-example-tests --exclude 'slow-*' && { echo Was expecting failure!; exit 1; }
+./run-example-tests && { echo Was expecting failure!; exit 1; }
 
 echo
 echo OK
