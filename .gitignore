@@ -1,3 +1,5 @@
 /build/
 /tests/log/
 /tests/out/
+/tests/example/log/
+/tests/example/out/

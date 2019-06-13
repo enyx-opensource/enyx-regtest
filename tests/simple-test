@@ -1,27 +1,29 @@
 #!/bin/bash
 
-# Test that `run-example-tests` exits with success when expected and, more importantly, that it
+# Test that `example/run-tests` exits with success when expected and, more importantly, that it
 # exits with an error on failure. This test does not use the enyx-regtest framework for the pretty
 # obvious reason that if a bug were to cause the framework to ignore errors, this test might then
 # fail to properly report errors as well.
 
 set -euo pipefail
 
+cd example
+
 echo Running good tests...
 echo ---------------------
-./run-example-tests --exclude '*-fail'
+./run-tests --exclude '*-fail'
 
 echo
 echo Running bad tests...
 echo --------------------
-for t in $(./run-example-tests -l '*-fail'); do
-    ./run-example-tests "$t" && { echo Was expecting failure!; exit 1; }
+for t in $(./run-tests -l '*-fail'); do
+    ./run-tests "$t" && { echo Was expecting failure!; exit 1; }
 done
 
 echo
 echo Running all tests...
 echo --------------------
-./run-example-tests && { echo Was expecting failure!; exit 1; }
+./run-tests && { echo Was expecting failure!; exit 1; }
 
 echo
 echo OK

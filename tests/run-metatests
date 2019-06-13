@@ -14,7 +14,15 @@ regtest_start
 metasuite() {
 ##################################################################################################
 
-regtest_dir=.
+regtest_dir=example
+
+regtest meta-run-none \
+    regtest_launch_in_sequence \
+    -- regtest_expect_exit_status 1 \
+       regtest_redirect_stdout_to {tmp.txt} \
+       regtest_from_dir example \
+       ./run-tests nosuchtest \
+    -- test -f {tmp.txt} -a ! -s {tmp.txt} # (i.e. output is empty)
 
 # Replace date and time in the output with placeholders.
 replace_date_and_time() {
@@ -24,19 +32,13 @@ replace_date_and_time() {
 }
 
 metarun() {
-    local out=$1
+    local out
+    out=$(readlink -f "$1")
     shift
-    "$@" |& replace_date_and_time >> "$out"
+    (cd example && "$@") |& replace_date_and_time >> "$out"
 }
 
-run=(metarun {out.txt} ./run-example-tests --deterministic)
-
-regtest meta-run-none \
-    regtest_launch_in_sequence \
-    -- regtest_expect_exit_status 1 \
-       regtest_redirect_stdout_to {tmp.txt} \
-       ./run-example-tests nosuchtest \
-    -- test -f {tmp.txt} -a ! -s {tmp.txt} # (i.e. output is empty)
+run=(metarun {out.txt} ./run-tests --deterministic)
 
 regtest meta-run-all \
     regtest_expect_exit_status 10 \
@@ -58,8 +60,12 @@ regtest meta-list-all \
 regtest meta-list-glob \
     "${run[@]}" --list 'ascii-hello-color*' 'unicode*'
 
+with_refdir() {
+    regtest_env REGTEST_REFDIR="$(readlink -f "$1")" "${@:2}"
+}
+
 regtest meta-generate \
-    regtest_env REGTEST_REFDIR={tmp.refdir} \
+    with_refdir {tmp.refdir} \
     regtest_launch_in_sequence \
     -- mkdir {tmp.refdir} \
     -- regtest_expect_exit_status 10 \
@@ -71,93 +77,89 @@ regtest meta-forward \
     "${run[@]}" --forward ascii-hello
 
 metarun_regtest_lines_only() {
-    local out=$1
+    local out
+    out=$(readlink -f "$1")
     shift
-    "$@" |& grep REGTEST | replace_date_and_time >> "$out"
+    (cd example && "$@") |& grep REGTEST | replace_date_and_time >> "$out"
 }
 
 # Note: We run the "unicode" tests after the "slow" tests to check that even after the "slow" test
 # suite times out, the "unicode" test suite runs.
 regtest meta-suite-timeout \
-    regtest_expect_exit_status 10 \
     regtest_env REGTEST_SUITE_TIMEOUT=.5s REGTEST_EXAMPLE_SUITE_FILES='slowgrep ascii unicode' \
-    metarun_regtest_lines_only {out.txt} ./run-example-tests --deterministic 'slow-*' 'unicode-*'
+    regtest_expect_exit_status 10 \
+    metarun_regtest_lines_only {out.txt} \
+    ./run-tests --deterministic 'slow-*' 'unicode-*'
 
 # == `checksum-files` Tests
 
-metarun_in_dir() {
-    local dir=$1 links="run-example-tests $2" origdir
-    shift 2
+checksum_metarun() {
+    local out dir=$2 links="run-tests $3" origdir
+    out=$([[ "$1" == /* ]] && printf '%s' "$1" || printf '%s' "$PWD/$1")
+    shift 3
     origdir=$PWD
     mkdir -p "$dir"
     (
         cd "$dir"
         trap 'rm $links && rm -rf out log' EXIT
         for l in $links; do
-            ln -s "$origdir/$l" ./
+            ln -s "$origdir/example/$l" ./
         done
-        ENYX_REGTEST_DIR=$origdir/.. "$@"
+        export LC_ALL=C \
+               REGTEST_EXAMPLE_EXTRA_SETUP='. "$ENYX_REGTEST_DIR"/checksum-files.sh' \
+               REGTEST_EXAMPLE_SUITE_FILES='ascii misc'
+        ENYX_REGTEST_DIR=$origdir/.. "$@" |& replace_date_and_time >> "$out"
     )
 }
 
-checksum_env=(
-    regtest_env LANG=C \
-                REGTEST_EXAMPLE_EXTRA_SETUP='. $ENYX_REGTEST_DIR/checksum-files.sh' \
-                REGTEST_EXAMPLE_SUITE_FILES='ascii misc'
-)
-
-checksum_run=(
-    "${checksum_env[@]}" \
-    metarun {out.txt} \
-    metarun_in_dir
-)
-
 # Check that checksum is computed and saved.
 regtest meta-checksum-file \
-    "${checksum_run[@]}" {out.dir} 'tests inputs refs' \
-    ./run-example-tests ascii-hello-color
+    checksum_metarun {out.txt} {out.dir} 'tests inputs refs' \
+    ./run-tests ascii-hello-color
 
 # Check that checksum is computed (and saved) when the output is a directory.
 regtest meta-checksum-file-dir \
-    "${checksum_run[@]}" {out.dir} 'tests inputs refs' \
-    ./run-example-tests misc-dir-output
+    checksum_metarun {out.txt} {out.dir} 'tests inputs refs' \
+    ./run-tests misc-dir-output
 
 # Check that both checksums are computed and saved.
 regtest meta-checksum-file-both \
-    "${checksum_run[@]}" {out.dir} 'tests inputs refs' \
-    ./run-example-tests --deterministic ascii-hello-color misc-dir-output
+    checksum_metarun {out.txt} {out.dir} 'tests inputs refs' \
+    ./run-tests --deterministic ascii-hello-color misc-dir-output
 
 checksum_file={ref}/$regtest_prev_test.dir/reference-md5sums
 
-checksum_run_with_existing_checksumfile() {
+checksum_metarun_with_existing_checksumfile() {
     local out=$1 dir=$2 checksum_file=$3
     shift 3
     mkdir "$dir" "$dir"/refs
     touch "$dir"/refs/{ascii-hello-color.txt,misc-dir-output.dir}
     [[ -n "$checksum_file" ]] && cp "$checksum_file" "$dir"
-    "${checksum_env[@]}" \
-    metarun "$out" \
-    metarun_in_dir "$dir" 'tests inputs' "$@"
+    checksum_metarun "$out" "$dir" 'tests inputs' "$@"
 }
 
 # Check that when checksums are already present (and they match), the reference files are ignored.
 regtest meta-checksum-file-existing-checksum \
-    checksum_run_with_existing_checksumfile {out.txt} {tmp.dir} "$checksum_file" \
-    ./run-example-tests --deterministic ascii-hello-color misc-dir-output
+    checksum_metarun_with_existing_checksumfile {out.txt} {tmp.dir} "$checksum_file" \
+    ./run-tests --deterministic ascii-hello-color misc-dir-output
 
+# Check that an error is reported when no checksums can be found and the references files don't
+# match.
 regtest meta-checksum-file-bad-files-no-checksum \
-    checksum_run_with_existing_checksumfile /dev/stdout {tmp.dir} '' \
+    checksum_metarun_with_existing_checksumfile /dev/stdout {tmp.dir} '' \
     regtest_expect_exit_status 10 \
-    ./run-example-tests --deterministic ascii-hello-color misc-dir-output
+    ./run-tests --deterministic ascii-hello-color misc-dir-output
 
+# Check that a bad checksum results in an error even if the output files are identical to their
+# respective reference files.
 regtest meta-checksum-file-bad-checksum-no-diff \
     regtest_launch_in_sequence \
     -- mkdir {tmp.dir} \
     -- cp "$checksum_file" {tmp.dir} \
     -- sed -i 's/[0-f][0-f][0-f][0-f] /0000 /' {tmp.dir}/reference-md5sums \
-    -- "${checksum_run[@]}" {tmp.dir} 'tests inputs refs' \
+    -- checksum_metarun {out.txt} {tmp.dir} 'tests inputs refs' \
        regtest_expect_exit_status 10 \
-       ./run-example-tests ascii-hello-color misc-dir-output
+       ./run-tests --deterministic ascii-hello-color misc-dir-output
 
 ##################################################################################################
 }

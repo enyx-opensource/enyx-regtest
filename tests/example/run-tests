@@ -4,7 +4,7 @@
 
 # Note: Purposefully contains some failing tests.
 
-[[ -n "${ENYX_REGTEST_DIR-}" ]] || ENYX_REGTEST_DIR=..
+[[ -n "${ENYX_REGTEST_DIR-}" ]] || ENYX_REGTEST_DIR=../..
 
 . "$ENYX_REGTEST_DIR"/run-tests.sh
 
