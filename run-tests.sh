@@ -112,3 +112,5 @@ elif [[ $print == 1 ]]; then
         printf '\n\n'
     }
 fi
+
+regtest_kill_children_on_exit
