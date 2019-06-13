@@ -1,0 +1,6 @@
+prefix=@prefix@
+libdir=@libdir@/enyx-regtest
+
+Name: enyx-regtest
+Description: Enyx regression and integration test framework.
+Version: @version@
