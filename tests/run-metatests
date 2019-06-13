@@ -83,6 +83,82 @@ regtest meta-suite-timeout \
     regtest_env REGTEST_SUITE_TIMEOUT=.5s REGTEST_EXAMPLE_SUITE_FILES='slowgrep ascii unicode' \
     metarun_regtest_lines_only {out.txt} ./run-example-tests --deterministic 'slow-*' 'unicode-*'
 
+# == `checksum-files` Tests
+
+metarun_in_dir() {
+    local dir=$1 links="run-example-tests $2" origdir
+    shift 2
+    origdir=$PWD
+    mkdir -p "$dir"
+    (
+        cd "$dir"
+        trap 'rm $links && rm -rf out log' EXIT
+        for l in $links; do
+            ln -s "$origdir/$l" ./
+        done
+        ENYX_REGTEST_DIR=$origdir/.. "$@"
+    )
+}
+
+checksum_env=(
+    regtest_env LANG=C \
+                REGTEST_EXAMPLE_EXTRA_SETUP='. $ENYX_REGTEST_DIR/checksum-files.sh' \
+                REGTEST_EXAMPLE_SUITE_FILES='ascii misc'
+)
+
+checksum_run=(
+    "${checksum_env[@]}" \
+    metarun {out.txt} \
+    metarun_in_dir
+)
+
+# Check that checksum is computed and saved.
+regtest meta-checksum-file \
+    "${checksum_run[@]}" {out.dir} 'tests inputs refs' \
+    ./run-example-tests ascii-hello-color
+
+# Check that checksum is computed (and saved) when the output is a directory.
+regtest meta-checksum-file-dir \
+    "${checksum_run[@]}" {out.dir} 'tests inputs refs' \
+    ./run-example-tests misc-dir-output
+
+# Check that both checksums are computed and saved.
+regtest meta-checksum-file-both \
+    "${checksum_run[@]}" {out.dir} 'tests inputs refs' \
+    ./run-example-tests --deterministic ascii-hello-color misc-dir-output
+
+checksum_file={ref}/$regtest_prev_test.dir/reference-md5sums
+
+checksum_run_with_existing_checksumfile() {
+    local out=$1 dir=$2 checksum_file=$3
+    shift 3
+    mkdir "$dir" "$dir"/refs
+    touch "$dir"/refs/{ascii-hello-color.txt,misc-dir-output.dir}
+    [[ -n "$checksum_file" ]] && cp "$checksum_file" "$dir"
+    "${checksum_env[@]}" \
+    metarun "$out" \
+    metarun_in_dir "$dir" 'tests inputs' "$@"
+}
+
+# Check that when checksums are already present (and they match), the reference files are ignored.
+regtest meta-checksum-file-existing-checksum \
+    checksum_run_with_existing_checksumfile {out.txt} {tmp.dir} "$checksum_file" \
+    ./run-example-tests --deterministic ascii-hello-color misc-dir-output
+
+regtest meta-checksum-file-bad-files-no-checksum \
+    checksum_run_with_existing_checksumfile /dev/stdout {tmp.dir} '' \
+    regtest_expect_exit_status 10 \
+    ./run-example-tests --deterministic ascii-hello-color misc-dir-output
+
+regtest meta-checksum-file-bad-checksum-no-diff \
+    regtest_launch_in_sequence \
+    -- mkdir {tmp.dir} \
+    -- cp "$checksum_file" {tmp.dir} \
+    -- sed -i 's/[0-f][0-f][0-f][0-f] /0000 /' {tmp.dir}/reference-md5sums \
+    -- "${checksum_run[@]}" {tmp.dir} 'tests inputs refs' \
+       regtest_expect_exit_status 10 \
+       ./run-example-tests ascii-hello-color misc-dir-output
+
 ##################################################################################################
 }
 regtest_run_suite metasuite metasuite

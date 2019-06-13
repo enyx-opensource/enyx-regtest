@@ -8,6 +8,8 @@
 
 . "$ENYX_REGTEST_DIR"/run-tests.sh
 
+eval "${REGTEST_EXAMPLE_EXTRA_SETUP-}"
+
 : ${REGTEST_SUITE_TIMEOUT=5s}
 
 if [[ -z "${REGTEST_EXAMPLE_SUITE_FILES-}" ]]; then
