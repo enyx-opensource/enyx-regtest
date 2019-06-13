@@ -15,7 +15,7 @@ _regtest_killing_children_on_exit=()
 # regtest_on_exit <command...>
 # Execute command on subshell exit.
 regtest_on_exit() {
-    _regtest_on_exit[$BASH_SUBSHELL]+="$*;"
+    _regtest_on_exit[$BASH_SUBSHELL]="$*; ${_regtest_on_exit[$BASH_SUBSHELL]-}"
     trap "${_regtest_on_exit[$BASH_SUBSHELL]}" EXIT
 }
 
