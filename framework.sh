@@ -93,6 +93,11 @@ regtest_matches_a_glob() {
     return 1
 }
 
+declare _name
+declare _outputs
+declare _tmpfiles
+declare -a _extra_args
+
 regtest() {
     local name=$1 extra_args=()
     shift
@@ -141,10 +146,10 @@ regtest() {
     [[ ${#output_set[@]} != 0 ]] && mkdir -p "$regtest_outdir"
     [[ ${#tmpfile_set[@]} != 0 ]] && mkdir -p "$regtest_tmpdir"
 
-    declare -g _name=$name
-    declare -g _outputs="${!output_set[@]}"
-    declare -g _tmpfiles="${!tmpfile_set[@]}"
-    declare -ga _extra_args=(${extra_args+"${extra_args[@]}"})
+    _name=$name
+    _outputs="${!output_set[@]}"
+    _tmpfiles="${!tmpfile_set[@]}"
+    _extra_args=(${extra_args+"${extra_args[@]}"})
     regtest_impl "${args[@]}" ${regtest_extra_args[@]+"${regtest_extra_args[@]}"}
 }
 
