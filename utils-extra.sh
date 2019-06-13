@@ -135,11 +135,15 @@ regtest_retry_and_pray() {
 # Return 0 if the exit status of <command...> is <n>. Useful for checking that errors are properly
 # detected and reported.
 regtest_expect_exit_status() {
-    local n=$1
+    local n=$1 e
     shift
     # Prevent [REGTEST] and [Critical] error lines from being forwarded.
     "$@" |& sed -e 's/\[REGTEST\]/[REGTEST(ignore)]/' -e 's/\[critical\]/[critical(ignore)]/I'
-    [[ "$?" == "$n" ]] || return 1
+    e=$?
+    [[ "$e" == "$n" ]] || {
+        regtest_printn >&2 'Expected exit status %s; got %s.' "$n" "$e"
+        return 1
+    }
 }
 
 # regtest_expect_grep <pattern> <command...>
