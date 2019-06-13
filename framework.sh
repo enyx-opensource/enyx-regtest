@@ -246,11 +246,19 @@ regtest_impl() {
         rm -rf "$regtest_tmpdir/$tmp_name"
     done
 
+    _normal_exit=
+    regtest_on_exit "
+        [[ \$_normal_exit == 1 ]] || {
+            regtest_printn >&2 '\e[31;1;1m[INTERRUPTED]\e[0m \e[2m%s\e[0m' $(printf %q "$_name")
+            regtest_printn >&2 'Log: %s' $(printf %q "$logfile")
+        }"
+
     regtest_printn "Running test command '%s'." "$*" > "$logfile"
     regtest_printn "\e[32;1;2m[RUN]\e[0m %s" "$_name"
     regtest_kill_children_on_exit
     regtest_launch "$@" &> >(tee -a "$logfile" | regtest_forward_command_output) || {
         regtest_report_run_error "$_name" "$logfile" $? ${warn_only[$?]+ignored}
+        _normal_exit=1
         return
     }
 
@@ -265,6 +273,7 @@ regtest_impl() {
             else
                 regtest_printn >&2 "Error: Reference file not found."
                 regtest_record_status "$_name" missing-ref
+                _normal_exit=1
                 return
             fi
         fi
@@ -272,6 +281,7 @@ regtest_impl() {
         if [[ $ret != 0 ]]; then
             [[ $ret == $regtest_ret_fatal ]] && {
                 regtest_record_status "$_name" fatal
+                _normal_exit=1
                 return
             }
             regtest_printn >&2 "Output differs from reference output '%s'." \
@@ -282,6 +292,7 @@ regtest_impl() {
             else
                 regtest_record_status "$_name" comparator
             fi
+            _normal_exit=1
             return
         fi
         # OK. Remove the output.
@@ -296,6 +307,7 @@ regtest_impl() {
     fi
 
     regtest_record_status "$_name" ok
+    _normal_exit=1
 }
 
 regtest_print_summary() {
