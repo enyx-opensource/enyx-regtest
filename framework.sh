@@ -11,41 +11,33 @@ _regtest_found_file=$regtest_tmp/found
 # Test statuses (newline-delimited). Record format: `<test> <status> <failure-detail> <time>`.
 _regtest_status_file=$regtest_tmp/statuses
 
-regtest_compute_md5sum() { md5sum "$1" | sed 's/ .*//'; }
-regtest_ls_rec() { (cd "$1" && shift && find . "$@" | sort); }
-regtest_ls0_rec() { (cd "$1" && shift && find . "$@" -print0 | sort -z); }
+# regtest_ref_checksum <path>
+# Prints checksum of a reference file.
+regtest_ref_checksum() { true; }
 
-# Use md5sum since there aren't any security concerns, it's 3 times faster than sha256sum, and its
-# output size is half that of sha256sum (although it could easily be truncated).
-regtest_compute_checksum() {
-    if [[ ! -d "$1" ]]; then
-        regtest_compute_md5sum "$1"
-    else
-        local sum f
-        sum=$(cd "$1" && find . -print0 | sort -z | regtest_compute_md5sum -)
-        regtest_ls0_rec "$1" -not -type d | {
-            while read -r -d '' f; do
-                sum=$({ echo "$sum"; cat "$1/$f"; } | regtest_compute_md5sum -)
-            done;
-            echo "$sum"
-        }
-    fi
-}
+# regtest_out_checksum <path>
+# Prints checksum of an output file.
+regtest_out_checksum() { true; }
 
-# regtest_get_checksum <path>
-# Get the checksum of a reference file.
-regtest_get_checksum() {
-    regtest_compute_checksum "$1"
-}
-
+# regtest_ref_diff <filename>
+# Whether reference and output files (or directories) differ. Uses `regtest_ref_checksum` and
+# `regtest_out_checksum` if they both return a non-empty string, otherwise, just uses `diff -r`.
 regtest_ref_diff() {
-    local out_name=$1
-
+    local out_name=$1 ref=$regtest_outdir/$out_name out=$regtest_refdir/$out_name
     local ref_sum out_sum
-    ref_sum=$(regtest_get_checksum "$regtest_refdir/$out_name") || return $regtest_ret_fatal
-    out_sum=$(regtest_compute_checksum "$regtest_outdir/$out_name") || return $regtest_ret_fatal
 
-    [[ "$ref_sum" == "$out_sum" ]]
+    ref_sum=$(regtest_ref_checksum "$regtest_refdir/$out_name") || return $regtest_ret_fatal
+    out_sum=$(regtest_out_checksum "$regtest_outdir/$out_name") || return $regtest_ret_fatal
+
+    if [[ -z "$ref_sum" || -z "$out_sum" ]]; then
+        diff -qr "$ref" "$out" >/dev/null || {
+            if [[ $? == 1 ]]; then return 1
+            else return $regtest_ret_fatal
+            fi
+        }
+    else
+        [[ "$ref_sum" == "$out_sum" ]]
+    fi
 }
 
 regtest_print_and_run() {

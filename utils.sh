@@ -69,3 +69,32 @@ regtest_nice_kill() {
 regtest_diff() {
     git --no-pager diff --no-index --color=always "$@"
 }
+
+# regtest_checksum <path>
+# Compute and print a checksum of a file or a directory. If the file is a symbolic link, compute
+# the checksum of the target. Directory checksums are computed according to a custom algorithm
+# which takes into account:
+# - the file hierarchy, i.e. the paths of all files contained within the directory;
+# - file types;
+# - symbolic link target paths;
+# - whether the _regular_ files are executable;
+# - the contents of _regular_ files;
+# By default, we use `md5sum` since it is fast (3 times faster than sha256sum), produces short
+# hashes, and a strong cryptographic hash function will usually not be necessary.
+regtest_checksum() {
+    if [[ ! -d "$1" ]]; then
+        md5sum <"$1"
+    elif [[ -d "$1" ]]; then
+        # Prefix the (directory) checksum with 'D' to distinguish it from an ordinary checksum.
+        echo -n D
+        {
+            cd "$1"
+            {
+                find . -not \( -type f -executable \) -printf '%p %y %l\0'
+                find . -type f -executable -printf '%p f x\0'
+            } | sed -z 's|^\./||' | LC_ALL=C sort -z
+            find . -type f -print0 | sed -z 's|^\./||' | LC_ALL=C sort -z | xargs -0 md5sum --
+        } | md5sum
+    fi |
+    sed 's/ .*//'
+}
