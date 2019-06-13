@@ -33,7 +33,7 @@ regtest_printn() {
 regtest_kill_children_on_exit() {
     if [[ ! "${_regtest_killing_children_on_exit[$BASH_SUBSHELL]-}" ]]; then
         _regtest_killing_children_on_exit[$BASH_SUBSHELL]=1
-        regtest_on_exit 'kill $(jobs -p) 2>/dev/null || true'
+        regtest_on_exit 'kill $(jobs -p) 2>/dev/null || true; wait 2>/dev/null || true'
     fi
 }
 
