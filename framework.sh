@@ -23,7 +23,7 @@ regtest_out_checksum() { true; }
 # Whether reference and output files (or directories) differ. Uses `regtest_ref_checksum` and
 # `regtest_out_checksum` if they both return a non-empty string, otherwise, just uses `diff -r`.
 regtest_ref_diff() {
-    local out_name=$1 ref=$regtest_outdir/$out_name out=$regtest_refdir/$out_name
+    local out_name=$1 ref=$regtest_refdir/$out_name out=$regtest_outdir/$out_name
     local ref_sum out_sum
 
     ref_sum=$(regtest_ref_checksum "$regtest_refdir/$out_name") || return $regtest_ret_fatal
