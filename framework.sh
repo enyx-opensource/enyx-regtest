@@ -71,7 +71,7 @@ regtest_ref_compare_impl() {
 # while the full log will be sent to stdout.
 regtest_ref_compare() {
     local out_name=$1
-    local full_log=$regtest_logdir/$regtest_session/$name.comparison
+    local full_log=$regtest_logdir/$regtest_session/$_name.comparison
     regtest_ref_compare_impl "$out_name" >"$full_log" || {
         regtest_printn '\e[1;2m------------ 8< ------------\e[0m'
         regtest_printn '\e[1mThis is a partial comparison.\e[0m'
@@ -94,8 +94,13 @@ regtest_matches_a_glob() {
 }
 
 regtest() {
-    local name=$1
+    local name=$1 extra_args=()
     shift
+
+    while [[ ${1-} == -* ]]; do
+        extra_args+=("$1")
+        shift
+    done
 
     [[ "$name" =~ $regtest_name_regex ]] || {
         regtest_printn >&2 'Error: Bad test name: %s. Was expected to match %s' \
@@ -136,7 +141,10 @@ regtest() {
     [[ ${#output_set[@]} != 0 ]] && mkdir -p "$regtest_outdir"
     [[ ${#tmpfile_set[@]} != 0 ]] && mkdir -p "$regtest_tmpdir"
 
-    name=$name outputs="${!output_set[@]}" tmpfiles="${!tmpfile_set[@]}" \
+    declare -g _name=$name
+    declare -g _outputs="${!output_set[@]}"
+    declare -g _tmpfiles="${!tmpfile_set[@]}"
+    declare -ga _extra_args=(${extra_args+"${extra_args[@]}"})
     regtest_impl "${args[@]}" ${regtest_extra_args[@]+"${regtest_extra_args[@]}"}
 }
 
@@ -155,16 +163,16 @@ regtest_record_status() {
     time_mns=$(regtest_minutes_and_seconds "$time")
 
     if [[ "$status" == ok ]]; then
-        regtest_printn '\e[32;1m[OK]\e[0m \e[2m%s\e[0m  %s' "$name" "$time_mns"
+        regtest_printn '\e[32;1m[OK]\e[0m \e[2m%s\e[0m  %s' "$_name" "$time_mns"
     else
-        regtest_printn '\e[31;1m[FAILED]\e[0m \e[2m%s\e[0m  %s' "$name" "$time_mns"
+        regtest_printn '\e[31;1m[FAILED]\e[0m \e[2m%s\e[0m  %s' "$_name" "$time_mns"
     fi
 
     printf '%s %s %s\n' "$test" "$status" "$time" >> "$_regtest_status_file"
 }
 
 regtest_report_run_error() {
-    local name=$1 logfile=$2 ret=$3
+    local name=$1 logfile=$2 ret=$3 ignored=${4-}
     regtest_printn >&2 "Error: Command %s exited with error (code %d)" "$name" "$ret"
     if [[ -z "$regtest_forward_output_pattern" ]]; then
         regtest_printn >&2 "\e[34;1;2m=== Last 20 lines of log ===\e[0m"
@@ -172,7 +180,7 @@ regtest_report_run_error() {
         regtest_printn >&2 "\e[34;1;2m============================\e[0m"
     fi
     regtest_printn >&2 "Full log: less -R %s" "$logfile"
-    regtest_record_status "$name" run
+    regtest_record_status "$name" run${ignored:+"($ignored)"}
 }
 
 regtest_init_logdir() {
@@ -190,13 +198,31 @@ regtest_forward_command_output() {
 }
 
 regtest_impl() {
+    declare -A warn_only
+    local arg
+    for arg in ${_extra_args+"${_extra_args[@]}"}; do
+        case $arg in
+        --warn-only*)
+            [[ "${arg#*=}" =~ ^[0-9]+$ ]] || {
+                regtest_printn >&2 'Error: Invalid --warn-only=<retcode> argument: %s' "$arg"
+                exit 1
+            }
+            warn_only[${arg#*=}]=1
+            ;;
+        *)
+            regtest_printn >&2 'Error: Unrecognised option: %s' "$arg"
+            exit 1
+            ;;
+        esac
+    done
+
     regtest_reset_timer
     regtest_init_logdir
     local logdir=$regtest_logdir/$regtest_session
-    local logfile=$logdir/$name
+    local logfile=$logdir/$_name
     local out_name tmp_name
 
-    for out_name in $outputs; do
+    for out_name in $_outputs; do
         rm -rf "$regtest_outdir/$out_name"
     done
 
@@ -207,22 +233,22 @@ regtest_impl() {
     fi
 
     # Clear old output files to prevent false negatives.
-    for out_name in $outputs; do
+    for out_name in $_outputs; do
         rm -rf "$regtest_outdir/$out_name"
     done
-    for tmp_name in $tmpfiles; do
+    for tmp_name in $_tmpfiles; do
         rm -rf "$regtest_tmpdir/$tmp_name"
     done
 
     regtest_printn "Running test command '%s'." "$*" > "$logfile"
-    regtest_printn "\e[32;1;2m[RUN]\e[0m %s" "$name"
+    regtest_printn "\e[32;1;2m[RUN]\e[0m %s" "$_name"
     regtest_kill_children_on_exit
     regtest_launch_with_tty_hack "$@" &> >(tee -a "$logfile" | regtest_forward_command_output) || {
-        regtest_report_run_error "$name" "$logfile" $?
+        regtest_report_run_error "$_name" "$logfile" $? ${warn_only[$?]+ignored}
         return
     }
 
-    for out_name in $outputs; do
+    for out_name in $_outputs; do
         # Test has outputs.
         regtest_printn 'Comparing output and reference (%s)...' "${out_name##*.}"
         local ret=0
@@ -232,22 +258,22 @@ regtest_impl() {
                 cp -rn "$regtest_outdir/$out_name" "$regtest_refdir/"
             else
                 regtest_printn >&2 "Error: Reference file not found."
-                regtest_record_status "$name" missing-ref
+                regtest_record_status "$_name" missing-ref
                 return
             fi
         fi
         regtest_ref_diff "$out_name" || ret=$?
         if [[ $ret != 0 ]]; then
             [[ $ret == $regtest_ret_fatal ]] && {
-                regtest_record_status "$name" fatal
+                regtest_record_status "$_name" fatal
                 return
             }
             regtest_printn >&2 "Output differs from reference output '%s'." \
                                "$regtest_outdir/$out_name"
             if regtest_ref_compare "$out_name"; then
-                regtest_record_status "$name" diff
+                regtest_record_status "$_name" diff
             else
-                regtest_record_status "$name" comparator
+                regtest_record_status "$_name" comparator
             fi
             return
         fi
@@ -257,17 +283,17 @@ regtest_impl() {
 
     # Remove temporary files if all went well.
     if [[ "$regtest_keep_tmpfiles" == 0 ]]; then
-        for tmp_name in $tmpfiles; do
+        for tmp_name in $_tmpfiles; do
             rm -r "$regtest_tmpdir/$tmp_name"
         done
     fi
 
-    regtest_record_status "$name" ok
+    regtest_record_status "$_name" ok
 }
 
 regtest_print_summary() {
     local total_time=$(regtest_minutes_and_seconds "$1")
-    local ret=0
+    local ret=0 ignored_failures=0
 
     regtest_printn ''
     regtest_printn 'Summary'
@@ -278,7 +304,11 @@ regtest_print_summary() {
         if [[ "$status" == ok ]]; then
             regtest_printn "%s \e[32mOK\e[0m - %s" "$testname" "$time"
         else
-            ret=10
+            if [[ "$status" != *'(ignored)' ]]; then
+                ret=10
+            else
+                ((ignored_failures++))
+            fi
             regtest_printn "%s \e[31mFAILED\e[0m (%s) %s" "$testname" "$status" "$time"
         fi
     done < <(sort "$_regtest_status_file") > >(column -t | sed 's/ //')
@@ -287,6 +317,10 @@ regtest_print_summary() {
 
     if [[ "$ret" == 0 ]]; then
         regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
+        ((ignored_failures > 0)) && {
+            regtest_printn '\e[33;1mWarning: Ignored %s failure%s!\e[0m' \
+                           "$ignored_failures" $( ((ignored_failures > 1)) && echo s )
+        }
     else
         regtest_printn '=> \e[31mFAILED\e[0m  %s' "$total_time"
     fi
