@@ -190,8 +190,8 @@ regtest_init_logdir() {
 }
 
 regtest_forward_command_output() {
-    local user_pattern=${regtest_forward_output_pattern:+"\|\($regtest_forward_output_pattern\)"}
-    grep --color=never -i "\[regtest\]$user_pattern"
+    local user_pattern=${regtest_forward_output_pattern:+"|($regtest_forward_output_pattern)"}
+    grep -E --color=never -i "\[regtest\]$user_pattern"
 }
 
 # regtest_launch <command...>

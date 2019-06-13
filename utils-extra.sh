@@ -80,7 +80,7 @@ regtest_launch_with_server() {
     regtest_on_exit "regtest_nice_kill -0 $server_pid"
     # Wait for ports to be up.
     regtest_printn "Waiting for server to be ready..."
-    grep -m1 "$ready_regex" "$server_pipe"
+    grep -E -m1 "$ready_regex" "$server_pipe"
     ps $server_pid || { regtest_printn 'Error: Server exited unexpectedly.'; return 1; }
     regtest_printn "Server ready. Launching main command '%s'." "$(command_name "$@")"
     "$@" || {
