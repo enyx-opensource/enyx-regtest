@@ -9,13 +9,14 @@ _regtest_utils_sh=
 regtest_ret_fatal=100
 regtest_ret_timeout=101
 
-regtest_on_exit=()
+_regtest_on_exit=()
+_regtest_killing_children_on_exit=()
 
 # regtest_on_exit <command...>
 # Execute command on subshell exit.
 regtest_on_exit() {
-    regtest_on_exit[$BASH_SUBSHELL]+="$*;"
-    trap "${regtest_on_exit[$BASH_SUBSHELL]}" EXIT
+    _regtest_on_exit[$BASH_SUBSHELL]+="$*;"
+    trap "${_regtest_on_exit[$BASH_SUBSHELL]}" EXIT
 }
 
 # A temporary directory for the whole process.
@@ -30,7 +31,10 @@ regtest_printn() {
 # regtest_kill_children_on_exit
 # Kill all child processes on exit subshell exit.
 regtest_kill_children_on_exit() {
-    regtest_on_exit 'kill $(jobs -p) 2>/dev/null || true'
+    if [[ ! "${_regtest_killing_children_on_exit[$BASH_SUBSHELL]-}" ]]; then
+        _regtest_killing_children_on_exit[$BASH_SUBSHELL]=1
+        regtest_on_exit 'kill $(jobs -p) 2>/dev/null || true'
+    fi
 }
 
 # command_name <command...>
