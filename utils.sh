@@ -10,13 +10,36 @@ regtest_ret_fatal=100
 regtest_ret_timeout=101
 
 _regtest_on_exit=()
-_regtest_killing_children_on_exit=()
+_regtest_kill_children_on_exit=()
+
+regtest_on_exit_handler() {
+    if [[ "${_regtest_kill_children_on_exit[$BASH_SUBSHELL]-}" ]]; then
+        kill $(jobs -p) 2>/dev/null || true
+        wait 2>/dev/null || true
+    fi
+    local _regtest_on_exit_status=0
+    eval "${_regtest_on_exit[$BASH_SUBSHELL]-}"
+    return "$_regtest_on_exit_status"
+}
 
 # regtest_on_exit <command...>
-# Execute command on subshell exit.
+# Execute command on subshell exit. May be called several times, in which case the commands will
+# be executed in _reverse_ order upon exiting. In the case of an ordinary exit (the process was
+# not killed), the subshell will exit with the last non-zero return code.
 regtest_on_exit() {
-    _regtest_on_exit[$BASH_SUBSHELL]="$*; ${_regtest_on_exit[$BASH_SUBSHELL]-}"
-    trap "${_regtest_on_exit[$BASH_SUBSHELL]}" EXIT
+    _regtest_on_exit[$BASH_SUBSHELL]="$(
+        printf '{ %s; } || _regtest_on_exit_status=$?; %s' \
+                "$*" "${_regtest_on_exit[$BASH_SUBSHELL]-}"
+    )"
+    trap 'regtest_on_exit_handler' EXIT
+}
+
+# regtest_kill_children_on_exit
+# Kill all child processes on subshell exit. If other cleanup operations have also been setup
+# through `regtest_on_exit`, child processes will be killed before running these commands.
+regtest_kill_children_on_exit() {
+    _regtest_kill_children_on_exit[$BASH_SUBSHELL]=1
+    trap 'regtest_on_exit_handler' EXIT
 }
 
 # A temporary directory for the whole process.
@@ -26,15 +49,6 @@ regtest_on_exit "rm -r $(printf %q "$regtest_tmp")"
 # regtest_printn <fmt> <args...>
 regtest_printn() {
     printf "\e[34;1;2m[REGTEST]\e[0m $1\n" "${@:2}"
-}
-
-# regtest_kill_children_on_exit
-# Kill all child processes on exit subshell exit.
-regtest_kill_children_on_exit() {
-    if [[ ! "${_regtest_killing_children_on_exit[$BASH_SUBSHELL]-}" ]]; then
-        _regtest_killing_children_on_exit[$BASH_SUBSHELL]=1
-        regtest_on_exit 'kill $(jobs -p) 2>/dev/null || true; wait 2>/dev/null || true'
-    fi
 }
 
 # command_name <command...>
