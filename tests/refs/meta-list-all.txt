@@ -1,0 +1,10 @@
+ascii-hello
+ascii-hello-bad-case-fail
+ascii-hello-bad-case-warn
+ascii-hello-bad-case-warn-fail
+ascii-hello-bad-case-multi-warn
+ascii-hello-case-insensitive
+ascii-hello-color
+ascii-hello-color-no-ref-fail
+ascii-hello-color-bad-ref-fail
+unicode-hello

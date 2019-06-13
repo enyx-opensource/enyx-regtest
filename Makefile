@@ -35,6 +35,12 @@ $(build)/enyx-regtest.pc: enyx-regtest.pc.in $(build)/conf
 	        print \
 	}' $< > $@
 
+# === Test
+
+test:
+	cd tests && chronic ./simple-test
+	cd tests && ./run-metatests
+
 # === Install
 
 lib := framework.sh utils.sh utils-extra.sh checksum-files.sh run-tests.sh
@@ -55,4 +61,5 @@ uninstall:
 # ===
 
 .PHONY: all doc html man \
+        test \
         install install-doc install-man install-html install-lib uninstall

@@ -1,0 +1,56 @@
+[34;1;2m[REGTEST][0m [34mascii-hello[0m
+grep [36;2m\[0m
+Hello [36;2m\[0m
+inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34mascii-hello-bad-case-fail[0m
+grep [36;2m\[0m
+hello [36;2m\[0m
+inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34mascii-hello-bad-case-warn[0m
+grep [36;2m\[0m
+hello [36;2m\[0m
+inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34mascii-hello-bad-case-warn-fail[0m
+grep [36;2m\[0m
+hello [36;2m\[0m
+inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34mascii-hello-bad-case-multi-warn[0m
+grep [36;2m\[0m
+hello [36;2m\[0m
+inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34mascii-hello-case-insensitive[0m
+grep [36;2m\[0m
+-i hello [36;2m\[0m
+inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34mascii-hello-color[0m
+regtest_redirect_stdout_to [36;2m\[0m
+out/ascii-hello-color.txt [36;2m\[0m
+grep [36;2m\[0m
+Hello [36;2m\[0m
+--color=always inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34mascii-hello-color-no-ref-fail[0m
+regtest_redirect_stdout_to [36;2m\[0m
+out/ascii-hello-color-no-ref-fail.txt [36;2m\[0m
+grep [36;2m\[0m
+Hello [36;2m\[0m
+--color=always inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34mascii-hello-color-bad-ref-fail[0m
+regtest_redirect_stdout_to [36;2m\[0m
+out/ascii-hello-color-bad-ref-fail.txt [36;2m\[0m
+grep [36;2m\[0m
+Hello [36;2m\[0m
+--color=always inputs/ascii/hello.txt
+
+[34;1;2m[REGTEST][0m [34municode-hello[0m
+grep [36;2m\[0m
+こんにちは [36;2m\[0m
+inputs/unicode/hello.utf8.txt
+

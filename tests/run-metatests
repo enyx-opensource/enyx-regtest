@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# Here, we test the test framework using the framework itself, hence the file's name. On its own,
+# this would be a pretty poor test (a madman can easily prove to himself that he is sane), so it
+# should be run in conjunction with `simple-test`.
+
+[[ -n "${ENYX_REGTEST_DIR-}" ]] || ENYX_REGTEST_DIR=..
+
+. "$ENYX_REGTEST_DIR"/run-tests.sh
+. "$ENYX_REGTEST_DIR"/utils-extra.sh
+
+regtest_start
+
+metasuite() {
+##################################################################################################
+
+regtest_dir=.
+
+# Replace date and time in the output with placeholders.
+replace_date_and_time() {
+    local ms=[0-6][0-9]:[0-6][0-9]
+    sed -e "s/[0-9]\{4\}-[0-1][0-9]-[0-3][0-9]-[0-2][0-9]:$ms/YYYY-MM-DD-hh:mm:ss/" \
+        -e "s/$ms/mm:ss/"
+}
+
+metarun() {
+    local out=$1
+    shift
+    "$@" |& replace_date_and_time >> "$out"
+}
+
+run=(metarun {out.txt} ./run-example-tests --deterministic --exclude 'slow-*')
+
+regtest meta-run-none \
+    regtest_launch_in_sequence \
+    -- regtest_expect_exit_status 1 \
+       regtest_redirect_stdout_to {tmp.txt} \
+       ./run-example-tests nosuchtest \
+    -- test -f {tmp.txt} -a ! -s {tmp.txt} # (i.e. output is empty)
+
+regtest meta-run-all \
+    regtest_expect_exit_status 10 \
+    "${run[@]}"
+
+regtest meta-run-one-ok \
+    "${run[@]}" ascii-hello
+
+regtest meta-run-one-fail \
+    regtest_expect_exit_status 10 \
+    "${run[@]}" ascii-hello-bad-case-fail
+
+regtest meta-print-all \
+    "${run[@]}" --print
+
+regtest meta-list-all \
+    "${run[@]}" --list
+
+regtest meta-list-glob \
+    "${run[@]}" --list 'ascii-hello-color*' 'unicode*'
+
+regtest meta-generate \
+    regtest_env REGTEST_REFDIR={tmp.refdir} \
+    regtest_launch_in_sequence \
+    -- mkdir {tmp.refdir} \
+    -- regtest_expect_exit_status 10 \
+       "${run[@]}" ascii-hello-color ascii-hello-color-bad-ref-fail \
+    -- "${run[@]}" --generate ascii-hello-color ascii-hello-color-bad-ref-fail \
+    -- "${run[@]}" ascii-hello-color ascii-hello-color-bad-ref-fail
+
+regtest meta-forward \
+    "${run[@]}" --forward ascii-hello
+
+metarun_regtest_lines_only() {
+    local out=$1
+    shift
+    "$@" |& grep REGTEST | replace_date_and_time >> "$out"
+}
+
+# Note: We run the "unicode" tests after the "slow" tests to check that even after the "slow" test
+# suite times out, the "unicode" test suite runs.
+regtest meta-suite-timeout \
+    regtest_expect_exit_status 10 \
+    regtest_env REGTEST_SUITE_TIMEOUT=.5s \
+    metarun_regtest_lines_only {out.txt} ./run-example-tests --deterministic 'slow-*' 'unicode-*'
+
+##################################################################################################
+}
+regtest_run_suite metasuite metasuite
+
+regtest_finish

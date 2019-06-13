@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# = Silly GNU Grep Tests
+
+# Note: Purposefully contains some failing tests.
+
+[[ -n "${ENYX_REGTEST_DIR-}" ]] || ENYX_REGTEST_DIR=..
+
+. "$ENYX_REGTEST_DIR"/run-tests.sh
+
+: ${REGTEST_SUITE_TIMEOUT=5s}
+
+regtest_run_suites tests \
+    slowgrep \
+    ascii \
+    unicode

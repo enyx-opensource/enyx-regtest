@@ -1,0 +1,13 @@
+[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m slow-hello-1
+[34;1;2m[REGTEST][0m [32;1m[OK][0m [2mslow-hello-1[0m  mm:ss
+[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m slow-hello-2
+[34;1;2m[REGTEST][0m [31;1mError: '. tests/slowgrep.sh' took too long (exceeded 0.00833333m). Killing process![0m
+[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m unicode-hello
+[34;1;2m[REGTEST][0m [32;1m[OK][0m [2municode-hello[0m  mm:ss
+[34;1;2m[REGTEST][0m 
+[34;1;2m[REGTEST][0m Summary
+[34;1;2m[REGTEST][0m -------
+[34;1;2m[REGTEST][0m slow-hello-1             [32mOK[0m      -          mm:ss
+[34;1;2m[REGTEST][0m slowgrep[SUITE-TIMEOUT]  [31mFAILED[0m  (timeout)  mm:ss
+[34;1;2m[REGTEST][0m unicode-hello            [32mOK[0m      -          mm:ss
+[34;1;2m[REGTEST][0m => [31mFAILED[0m  mm:ss
