@@ -1,0 +1,44 @@
+#!/bin/bash
+# ./tests/ci <tmpdir> <base-image> <command...>
+# Run tests inside a docker image for continuous integration (CI) purposes.
+
+set -euo pipefail
+
+tmpdir=$1
+baseimg=$2
+cmd=${3-make test doc}
+
+img=enyx-regtest-ci-${baseimg/:/}
+
+# We need:
+# `moreutils`    for `chronic`
+# `bsdmainutils` for `column`
+# `git`          for `git diff`
+
+case $baseimg in
+debian*|ubuntu*)
+    echo "FROM $baseimg"
+    echo "RUN apt-get update && \\"
+    echo "    apt-get install -y make moreutils gawk bsdmainutils git"
+    echo "RUN apt-get install -y asciidoctor"
+    ;;
+centos*)
+    echo "FROM $baseimg"
+    echo "RUN yum install -y epel-release && \\"
+    echo "    yum update -y && \\"
+    echo "    yum install -y make moreutils gawk git"
+    echo "RUN yum install -y asciidoctor"
+    ;;
+*)
+    echo >&2 "Unhandled base image: $baseimg"
+    exit 1
+    ;;
+esac | sudo docker build -t "$img" -
+
+[[ -e "$tmpdir" ]] && {
+    [[ -d "$tmpdir" ]] || { printf >&2 '%s is not a directory!' "$tmpdir"; exit 1; }
+    trash "$tmpdir"
+}
+rsync -a Makefile *.sh *.adoc *.in tests "$tmpdir/"
+
+sudo docker run -ti --rm -v "$(readlink -f "$tmpdir")":/regtest -w /regtest -t "$img" sh -c "$cmd"
