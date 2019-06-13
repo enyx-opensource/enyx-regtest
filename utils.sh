@@ -1,5 +1,8 @@
 #!/bin/bash
 
+[[ -z "${_regtest_utils_sh+x}" ]] || return
+_regtest_utils_sh=
+
 # = Test Utilities
 
 # Special return codes.
