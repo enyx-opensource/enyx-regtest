@@ -2,6 +2,25 @@
 
 # = Extra utilities (not required by framework.sh)
 
+# regtest_launch_with_tty_hack <command...>
+# Replace the `isatty (3)` function with one that always returns true for stdout and stderr in
+# order to (hopefully) force programs to always colour and line-buffer their output. Can have some
+# pretty nasty side-effects with some programs. Requires gcc.
+# To replace the default `regtest_launch` behaviour:
+#
+#     regtest_launch() { regtest_launch_with_tty_hack "$@"; }
+regtest_launch_with_tty_hack() {
+    local ttyso=$regtest_tmp/regtest-ttyseverywhere.so
+    if [[ "${LD_PRELOAD-}" == "$ttyso" ]]; then
+        "$@"
+    else
+        [[ ! -e "$ttyso" ]] &&
+            gcc -O2 -fpic -shared -ldl -o "$ttyso" -xc - \
+                <<< 'int isatty(int fd) { return fd == 1 || fd == 2; }'
+        LD_PRELOAD="$ttyso" "$@"
+    fi
+}
+
 # regtest_temp_pipe
 # Creates a temporary pipe file in /tmp and returns its path. It is the caller's responsibility to
 # clean it up.

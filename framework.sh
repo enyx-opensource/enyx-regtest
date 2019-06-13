@@ -202,6 +202,12 @@ regtest_forward_command_output() {
     grep --color=never -i "\[\(regtest\|critical\)\]$user_pattern"
 }
 
+# regtest_launch <command...>
+# Launch command to be tested. Can be overridden (monkey-patched).
+regtest_launch() {
+    "$@"
+}
+
 regtest_impl() {
     declare -A warn_only
     local arg
@@ -248,7 +254,7 @@ regtest_impl() {
     regtest_printn "Running test command '%s'." "$*" > "$logfile"
     regtest_printn "\e[32;1;2m[RUN]\e[0m %s" "$_name"
     regtest_kill_children_on_exit
-    regtest_launch_with_tty_hack "$@" &> >(tee -a "$logfile" | regtest_forward_command_output) || {
+    regtest_launch "$@" &> >(tee -a "$logfile" | regtest_forward_command_output) || {
         regtest_report_run_error "$_name" "$logfile" $? ${warn_only[$?]+ignored}
         return
     }

@@ -33,21 +33,6 @@ regtest_kill_children_on_exit() {
     regtest_on_exit 'kill $(jobs -p) 2>/dev/null || true'
 }
 
-# regtest_launch_with_tty_hack <command...>
-# Replace the `isatty (3)` function so that it always returns true in order to (hopefully) force
-# programs to always colour and line-buffer their output.
-regtest_launch_with_tty_hack() {
-    local ttyso=$regtest_tmp/regtest-ttyseverywhere.so
-    if [[ "${LD_PRELOAD-}" == "$ttyso" ]]; then
-        "$@"
-    else
-        [[ ! -e "$ttyso" ]] &&
-            gcc -O2 -fpic -shared -ldl -o "$ttyso" -xc - \
-                <<< 'int isatty(int fd) { return fd == 1 || fd == 2; }'
-        LD_PRELOAD="$ttyso" "$@"
-    fi
-}
-
 # command_name <command...>
 # Returns a meaningful name for the command provided in the parameter list.
 command_name() {
