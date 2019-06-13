@@ -371,7 +371,7 @@ regtest_kill_after_timeout() {
     "$@" & pid=$!
     (
         regtest_kill_children_on_exit
-        sleep "$timeout"
+        sleep "$timeout" 2</dev/null # (redirection is a bash 4.2 workaround)
         rm "$timeout_canary"
         # Print log in a detached process to make sure the log will be printed despite `kill -9`.
         regtest_printn >&2 \
