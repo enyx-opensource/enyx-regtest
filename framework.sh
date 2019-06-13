@@ -171,7 +171,7 @@ regtest_record_status() {
 regtest_report_run_error() {
     local name=$1 logfile=$2 ret=$3 ignored=${4-}
     regtest_printn >&2 "Error: Command %s exited with error (code %d)" "$name" "$ret"
-    if [[ -z "$regtest_forward_output_pattern" ]]; then
+    if [[ "$regtest_forward_output_pattern" != . ]]; then # (not everything forwarded already)
         regtest_printn >&2 "\e[34;1;2m=== Last 20 lines of log ===\e[0m"
         tail -n20 "$logfile" | sed -e$'s/^/\e[0;2m[.......] /' -e$'s/\(\e\[[^m]*\)m/\\1;2m/g'
         regtest_printn >&2 "\e[34;1;2m============================\e[0m"
@@ -190,8 +190,8 @@ regtest_init_logdir() {
 }
 
 regtest_forward_command_output() {
-    local user_pattern="${regtest_forward_output_pattern:+\|$regtest_forward_output_pattern}"
-    grep --color=never -i "\[\(regtest\|critical\)\]$user_pattern"
+    local user_pattern=${regtest_forward_output_pattern:+"\|\($regtest_forward_output_pattern\)"}
+    grep --color=never -i "\[regtest\]$user_pattern"
 }
 
 # regtest_launch <command...>
@@ -477,18 +477,18 @@ regtest_logdir=${REGTEST_LOGDIR-log}
 # By default, only files from failed runs are kept.
 regtest_keep_tmpfiles=$(if [[ -n "${REGTEST_TMPDIR-}" ]]; then echo 1; else echo 0; fi)
 
-regtest_session=$(date +%Y-%m-%d-%H:%M:%S)
+: ${regtest_session=$(date +%Y-%m-%d-%H:%M:%S)}
 
 # Whether to generate reference files during this run.
 regtest_generate=0
 
 # Lines of a regtest command's output (on stderr or stdout) matching this grep regex will be
 # forwarded to standard output (instead of being written only to the log file).
-regtest_forward_output_pattern=
+: ${regtest_forward_output_pattern=}
 
 # Whether to launch test suites in random order. Tests within a test suite are always run in the
 # order they are written in.
-regtest_run_suites_in_random_order=1
+: ${regtest_run_suites_in_random_order=1}
 # The base timeout for a test suite (in the format accepted by the `sleep` command). If a test
 # suite file contains a line of the form `# regtest-timeout-factor: <n>`, where `<n>` is a real
 # number, that suite's timeout will be multiplied by `<n>`. If a test suite exceeds said timeout,
@@ -498,4 +498,4 @@ regtest_suite_timeout=${REGTEST_SUITE_TIMEOUT-5m}
 # Bash regex which test names *must* match (useful for keeping things nice and consistent). Must
 # contain a parenthesised part indicating the name (to match against `regtest_globs`). This makes
 # it possible to have a version suffix for instance.
-regtest_name_regex='^([a-z0-9-]+)$'
+: ${regtest_name_regex='^([a-z0-9-]+)$'}

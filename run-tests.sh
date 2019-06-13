@@ -42,8 +42,9 @@ usage() {
     echo "    -g,--generate         generate reference files (instead of failing when not found)"
     echo "    -f,--forward-output[=<...>] forward test command output to stdout"
     echo "        If a pattern is provided, lines matching the pattern will be forwarded"
-    echo '        Note: Lines matching `\[\(regtest\|critical\)\]` are always forwarded'
-    echo '        Example: `-fwarning`'
+    echo '        Note: Lines matching `\[regtest\]` are always forwarded'
+    echo '        Example: `-f'\''warning\|error'\''`' \
+            ${regtest_forward_output_pattern:+"Default: \`$regtest_forward_output_pattern\`"}
     echo "    -D,--deterministic    don't randomize order in which test suites are run"
     echo '    --exclude=<...>       exclude tests matching the given glob'
     echo '        Can be called multiple times.'
