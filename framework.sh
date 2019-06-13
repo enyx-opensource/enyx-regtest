@@ -355,7 +355,7 @@ regtest_kill_after_timeout() {
     local killer pid ret timeout_canary
 
     timeout_canary=$(mktemp "$regtest_tmp/timeout-XXXXX")
-    regtest_on_exit "rm -f $(printf %q "$timeout_canary")"
+    regtest_on_exit 'rm -f "$timeout_canary"'
 
     regtest_kill_children_on_exit
     "$@" & pid=$!
