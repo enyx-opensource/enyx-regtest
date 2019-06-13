@@ -346,8 +346,8 @@ regtest_print_summary() {
         regtest_printn '=> \e[31mFAILED\e[0m  %s' "$total_time"
     fi
 
-    [[ "$(wc -l "$_regtest_status_file" | awk '{print $1}')" == \
-       "$(wc -l "$_regtest_found_file" | awk '{print $1}')" ]] || {
+    [[ "$(wc -l "$_regtest_status_file" | gawk '{print $1}')" == \
+       "$(wc -l "$_regtest_found_file" | gawk '{print $1}')" ]] || {
         regtest_printn "\e[33;1mWarning: Not all matching tests were run!\e[0m"
         return 11
     }
@@ -392,7 +392,7 @@ regtest_time_to_seconds() {
     local t=$1 f
     [[ "$t" =~ ^([0-9.]+)([smh]?)$ ]]
     case ${BASH_REMATCH[2]:-s} in s) f=1;; m) f=60;; h) f=3600;; esac
-    awk </dev/null -vf="$f" -vt="${BASH_REMATCH[1]}" 'BEGIN { print f * t }'
+    gawk </dev/null -vf="$f" -vt="${BASH_REMATCH[1]}" 'BEGIN { print f * t }'
 }
 
 regtest_suite_timeout() {
@@ -401,7 +401,7 @@ regtest_suite_timeout() {
     if [[ "$regtest_suite_timeout" == inf ]]; then
         echo inf
     else
-        awk -vt="$(regtest_time_to_seconds "$regtest_suite_timeout"))" '
+        gawk -vt="$(regtest_time_to_seconds "$regtest_suite_timeout"))" '
             $1 == "#" && $2 == "regtest-timeout-factor:" { print $3 * t / 60 "m"; exit }
             ENDFILE                                      { print t / 60 "m" }' \
             "$suite_file"
@@ -435,7 +435,7 @@ regtest_finish() {
     if [[ ! -s "$_regtest_status_file" ]]; then
         return 0
     elif [[ "$(wc -l "$_regtest_status_file")" == 1\ * ]]; then
-        awk '$2 == "ok" { exit 0 } ENDFILE { exit 1 }' "$_regtest_status_file" || return 10
+        gawk '$2 == "ok" { exit 0 } ENDFILE { exit 1 }' "$_regtest_status_file" || return 10
     else
         regtest_print_summary $(($(date +%s) - _regtest_start_time)) || return 10
     fi

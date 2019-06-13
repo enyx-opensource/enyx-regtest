@@ -74,7 +74,7 @@ regtest_nice_kill() {
     while read; do
         ps "$pid" >/dev/null || return 0
         sleep 0.1
-    done < <(awk </dev/null -vt="$timeout" 'BEGIN { while (t >= 0) { t -= 0.1; print } }')
+    done < <(gawk </dev/null -vt="$timeout" 'BEGIN { while (t >= 0) { t -= 0.1; print } }')
     regtest_printn >&2 \
             '\e[31mError: Process %s is still alive after %s seconds.\e[0m KILL time!' \
             "$pid" "$timeout"

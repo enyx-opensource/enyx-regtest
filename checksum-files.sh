@@ -17,7 +17,7 @@ regtest_ref_checksum() {
     local path=$1 filename sum
 
     filename=$(basename -- "$path")
-    sum=$(awk -v p="$filename" '$2 == p { print $1; exit; }' "$regtest_ref_checksum_file")
+    sum=$(gawk -v p="$filename" '$2 == p { print $1; exit; }' "$regtest_ref_checksum_file")
 
     if [[ -n "$sum" ]]; then
         printf '%s\n' "$sum"
