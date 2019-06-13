@@ -42,7 +42,8 @@ regtest_launch_with_tty_hack() {
         "$@"
     else
         [[ ! -e "$ttyso" ]] &&
-            gcc -O2 -fpic -shared -ldl -o "$ttyso" -xc - <<< 'int isatty(int fd) { return (1 == fd || 2 == fd); }'
+            gcc -O2 -fpic -shared -ldl -o "$ttyso" -xc - \
+                <<< 'int isatty(int fd) { return fd == 1 || fd == 2; }'
         LD_PRELOAD="$ttyso" "$@"
     fi
 }
