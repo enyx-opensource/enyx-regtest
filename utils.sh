@@ -46,9 +46,11 @@ regtest_kill_children_on_exit() {
 regtest_tmp=$(mktemp -td regtest-XXXXXX)
 regtest_on_exit "rm -r $(printf %q "$regtest_tmp")"
 
+regtest_print_prefix=$'\e[34;1;2m[REGTEST]\e[0m '
+
 # regtest_printn <fmt> <args...>
 regtest_printn() {
-    printf "\e[34;1;2m[REGTEST]\e[0m $1\n" "${@:2}"
+    printf "$regtest_print_prefix$1\n" "${@:2}"
 }
 
 # command_name <command...>

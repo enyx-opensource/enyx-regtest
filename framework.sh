@@ -323,16 +323,20 @@ regtest_print_summary() {
     while read -r testname status time; do
         time=$(regtest_minutes_and_seconds "$time")
         if [[ "$status" == ok ]]; then
-            regtest_printn "%s \e[32mOK\e[0m - %s" "$testname" "$time"
+            printf "%s OK - %s\n" "$testname" "$time"
         else
             if [[ "$status" != *'(ignored)' ]]; then
                 ret=10
             else
                 ((ignored_failures++))
             fi
-            regtest_printn "%s \e[31mFAILED\e[0m (%s) %s" "$testname" "$status" "$time"
+            printf "%s FAILED (%s) %s\n" "$testname" "$status" "$time"
         fi
-    done < <(sort "$_regtest_status_file") > >(column -t | sed 's/ //')
+    done < <(sort "$_regtest_status_file") \
+         > >(column -t |
+             sed -e"s/^/$regtest_print_prefix/" \
+                 -e$'s/  OK  /  \e[32mOK\e[0m  /' \
+                 -e$'s/  FAILED  /  \e[31mFAILED\e[0m  /')
 
     sleep .1
 
