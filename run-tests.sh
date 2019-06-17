@@ -55,8 +55,8 @@ usage() {
     echo '    REGTEST_SUITE_TIMEOUT base timeout for test suites'
 }
 
-list=0
-print=0
+list=
+print=
 
 opts=$(getopt -o hlpe:gf::D \
               --long help,list,print,extra-args:,generate,forward-output::,deterministic,exclude:,no-timeout -- "$@") || exit 1
@@ -69,7 +69,7 @@ while true ; do
         -e|--extra-args    ) regtest_extra_args+=($2); shift 2;;
         -g|--generate      ) regtest_generate=1; shift;;
         -f|--forward-output) regtest_forward_output_pattern=${2:-.}; shift 2;;
-        -D|--deterministic ) regtest_run_suites_in_random_order=0; shift;;
+        -D|--deterministic ) regtest_run_suites_in_random_order=; shift;;
         --exclude          ) regtest_exclude_globs+=("$2"); shift 2;;
         --no-timeout       ) regtest_suite_timeout=inf; shift;;
         --                 ) shift; break;;
@@ -78,21 +78,21 @@ while true ; do
 done
 regtest_globs=("${@-*}")
 
-if [[ $list == 1 && $print == 1 ]]; then
+if [[ $list && $print ]]; then
     regtest_printn >&2 "Error: Can't have both --list and --print."
     exit 1
 fi
 
-if [[ $list == 1 ]]; then
+if [[ $list ]]; then
     : ${regtest_tmpdir:=tmp}
-    regtest_run_suites_in_random_order=0
+    regtest_run_suites_in_random_order=
     regtest_impl() {
         [[ "$name" =~ $regtest_name_regex ]]
         printf '%s\n' "${BASH_REMATCH[1]}"
     }
-elif [[ $print == 1 ]]; then
+elif [[ $print ]]; then
     : ${regtest_tmpdir:=tmp}
-    regtest_run_suites_in_random_order=0
+    regtest_run_suites_in_random_order=
     regtest_impl() {
         regtest_printn '\e[34m%s\e[0m' "$name"
         printf '%s' "$1"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-[[ -z "${_regtest_utils_sh+x}" ]] || return
-_regtest_utils_sh=
+[[ ! ${_regtest_utils_sh-} ]] || return
+_regtest_utils_sh=1
 
 # = Test Utilities
 

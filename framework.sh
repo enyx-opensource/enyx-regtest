@@ -253,7 +253,7 @@ regtest_impl() {
         rm -rf "$regtest_outdir/$out_name"
     done
 
-    if [[ "$regtest_generate" == 1 && ! -d "$regtest_refdir" ]]; then
+    if [[ $regtest_generate && ! -d "$regtest_refdir" ]]; then
         regtest_printn >&2 "Error: Reference directory '%s' not found. Exiting." \
                            "$regtest_refdir"
         exit 1
@@ -269,7 +269,7 @@ regtest_impl() {
 
     _normal_exit=
     regtest_on_exit "
-        [[ \$_normal_exit == 1 ]] || {
+        [[ \$_normal_exit ]] || {
             regtest_printn >&2 '\e[31;1;1m[INTERRUPTED]\e[0m \e[2m%s\e[0m' $(printf %q "$_name")
             regtest_printn >&2 'Log: %s' $(printf %q "$logfile")
         }"
@@ -288,7 +288,7 @@ regtest_impl() {
         regtest_printn 'Comparing output and reference (%s)...' "${out_name##*.}"
         local ret=0
         if [[ ! -e "$regtest_refdir/$out_name" ]]; then
-            if [[ "$regtest_generate" == 1 ]]; then
+            if [[ $regtest_generate ]]; then
                 regtest_printn "Moving output file to reference directory..."
                 cp -rn "$regtest_outdir/$out_name" "$regtest_refdir/"
             else
@@ -321,7 +321,7 @@ regtest_impl() {
     done
 
     # Remove temporary files if all went well.
-    if [[ "$regtest_keep_tmpfiles" == 0 ]]; then
+    if [[ ! $regtest_keep_tmpfiles ]]; then
         for tmp_name in $_tmpfiles; do
             rm -r "$regtest_tmpdir/$tmp_name"
         done
@@ -359,7 +359,7 @@ regtest_print_summary() {
 
     sleep .1
 
-    if [[ "$ret" == 0 ]]; then
+    if [[ $ret == 0 ]]; then
         regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
         ((ignored_failures > 0)) && {
             regtest_printn '\e[33;1mWarning: Ignored %s failure%s!\e[0m' \
@@ -473,7 +473,7 @@ regtest_run_suites() {
     regtest_on_exit regtest_finish
 
     for suite in $(
-        if [[ "$regtest_run_suites_in_random_order" == 1 ]]; then
+        if [[ $regtest_run_suites_in_random_order ]]; then
             shuf -e "$@"
         else
             printf '%s\n' "$@"
@@ -522,12 +522,12 @@ regtest_logdir=${REGTEST_LOGDIR-log}
 
 # Never remove "temporary" files on exit if a specific temporary directory has been requested.
 # By default, only files from failed runs are kept.
-regtest_keep_tmpfiles=$(if [[ -n "${REGTEST_TMPDIR-}" ]]; then echo 1; else echo 0; fi)
+regtest_keep_tmpfiles=$(if [[ -n "${REGTEST_TMPDIR-}" ]]; then echo 1; fi)
 
 : ${regtest_session=$(date +%Y-%m-%d-%H:%M:%S)}
 
 # Whether to generate reference files during this run.
-regtest_generate=0
+regtest_generate=
 
 # Lines of a regtest command's output (on stderr or stdout) matching this grep regex will be
 # forwarded to standard output (instead of being written only to the log file).
