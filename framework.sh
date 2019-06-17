@@ -203,9 +203,19 @@ regtest_init_logdir() {
     ln -nsf "$regtest_session" "$regtest_logdir/last"
 }
 
+regtest_forward_command_output_full_pattern() {
+    echo "\[regtest\]${regtest_forward_output_pattern:+"|($regtest_forward_output_pattern)"}"
+}
+
 regtest_forward_command_output() {
-    local user_pattern=${regtest_forward_output_pattern:+"|($regtest_forward_output_pattern)"}
-    grep -E --color=never -i "\[regtest\]$user_pattern"
+    if [[ "${regtest_forward_output_pattern-}" == . ]]; then
+        cat
+    else
+        gawk -vIGNORECASE=1 "
+            /^\(regtest-ignore\)/ { next }
+            /$(regtest_forward_command_output_full_pattern)/ { print }
+            { next }"
+    fi
 }
 
 # regtest_launch <command...>

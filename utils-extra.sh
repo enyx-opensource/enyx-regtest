@@ -138,17 +138,29 @@ regtest_retry_and_pray() {
 
 # regtest_expect_exit_status <n> <command...>
 # Return 0 if the exit status of <command...> is <n>. Useful for checking that errors are properly
-# detected and reported.
+# detected and reported. Also prevents lines containing "[REGTEST]" or the
+# `regtest_forward_output_pattern` from being forwarded.
 regtest_expect_exit_status() {
-    local n=$1 e
+    local n=$1 pipestatus
     shift
-    # Prevent [REGTEST] and [Critical] error lines from being forwarded.
-    "$@" |& sed -e 's/\[REGTEST\]/[REGTEST(ignore)]/' -e 's/\[critical\]/[critical(ignore)]/I'
-    e=$?
-    [[ "$e" == "$n" ]] || {
-        regtest_printn >&2 'Expected exit status %s; got %s.' "$n" "$e"
+    "$@" |& {
+        if [[ "${regtest_forward_output_pattern-}" == . ]]; then
+            cat
+        else
+            # Prevent [REGTEST] lines and other forwarded lines from being forwarded.
+            sed -r "s/^.*$(regtest_forward_command_output_full_pattern)/(regtest-ignore)\0/I"
+        fi
+    }
+    pipestatus=("${PIPESTATUS[@]}")
+    [[ ${pipestatus[1]} == 0 ]] || {
+        regtest_printn >&2 'sed failed!'
+        return $regtest_ret_fatal
+    }
+    [[ ${pipestatus[0]} == "$n" ]] || {
+        regtest_printn >&2 'Expected exit status %s; got %s.' "$n" "${pipestatus[0]}"
         return 1
     }
+    return 0
 }
 
 # regtest_expect_grep <pattern> <command...>

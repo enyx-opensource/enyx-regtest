@@ -173,8 +173,8 @@ regtest meta-checksum-file-bad-checksum-no-diff \
     -- mkdir {tmp.dir} \
     -- cp "$checksum_file" {tmp.dir} \
     -- sed -i 's/[0-f][0-f][0-f][0-f] /0000 /' {tmp.dir}/reference-md5sums \
-    -- checksum_metarun {out.txt} {tmp.dir} 'tests inputs refs' \
-       regtest_expect_exit_status 10 \
+    -- regtest_expect_exit_status 10 \
+       checksum_metarun {out.txt} {tmp.dir} 'tests inputs refs' \
        ./run-tests --deterministic ascii-hello-color misc-dir-output
 
 ##################################################################################################
