@@ -455,10 +455,10 @@ regtest_finish() {
 
     if [[ ! -s "$_regtest_status_file" ]]; then
         return 0
-    elif [[ "$(wc -l "$_regtest_status_file")" == 1\ * ]]; then
-        gawk -vr=1 '$2 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file" || return 10
+    elif [[ "$(wc -l "$_regtest_found_file" | gawk '{print $1}')" == 1 ]]; then
+        gawk -vr=10 '$2 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file"
     else
-        regtest_print_summary $(($(date +%s) - _regtest_start_time)) || return 10
+        regtest_print_summary $(($(date +%s) - _regtest_start_time))
     fi
 }
 
