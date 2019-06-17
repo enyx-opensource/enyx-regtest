@@ -14,7 +14,7 @@ _regtest_kill_children_on_exit=()
 
 regtest_on_exit_handler() {
     if [[ "${_regtest_kill_children_on_exit[$BASH_SUBSHELL]-}" ]]; then
-        kill $(jobs -p) 2>/dev/null || true
+        eval "kill \$(ps -o pid= --ppid $BASHPID)" 2>/dev/null || true
         wait 2>/dev/null || true
     fi
     local _regtest_on_exit_status=0

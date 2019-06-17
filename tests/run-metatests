@@ -9,6 +9,24 @@
 . "$ENYX_REGTEST_DIR"/run-tests.sh
 . "$ENYX_REGTEST_DIR"/utils-extra.sh
 
+[[ "$BASH_VERSION" == 4.[12].* ]] && {
+    # Bash 4.{1,2} insist on printing "Terminated" messages on subshell exit in certain cases...
+    # It's easier to filter these messages out here than trying to fix this silly display bug, for
+    # old versions of bash no less.
+    regtest_ref_diff() {
+        local out_name=$1 ref=$regtest_refdir/$out_name out=$regtest_outdir/$out_name
+        [[ -f "$out" ]] && {
+            grep -v 'Terminated.*regtest_kill_children_on_exit' "$out" > "$out.tmp"
+            mv "$out.tmp" "$out"
+        }
+        diff -qr "$ref" "$out" >/dev/null || {
+            if [[ $? == 1 ]]; then return 1
+            else return $regtest_ret_fatal
+            fi
+        }
+    }
+}
+
 regtest_start
 
 metasuite() {
