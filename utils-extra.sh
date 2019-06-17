@@ -172,7 +172,8 @@ regtest_expect_grep() {
     if ! (
         regtest_kill_children_on_exit
         exec 3>&2
-        awk "/$pat/"' { print $0 " \033[32m--> OK!\033[0m"; exit 0 }
+        gawk "
+            /$pat/"' { print $0 " \033[32m--> OK!\033[0m"; exit 0 }
             { print }
             ENDFILE { exit 1 }' \
             <(
