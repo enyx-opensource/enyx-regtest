@@ -38,8 +38,10 @@ $(build)/enyx-regtest.pc: enyx-regtest.pc.in $(build)/conf
 # === Test
 
 test:
-	cd tests && chronic ./simple-test
-	cd tests && ./run-metatests
+	mkdir -p $(build)/test-copy/tests/example
+	cp -a *.sh tests $(build)/test-copy/
+	cd $(build)/test-copy/tests && chronic ./simple-test
+	cd $(build)/test-copy/tests && ./run-metatests
 
 cicmd := ./tests/ci $(build)/ci
 ci:
