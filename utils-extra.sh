@@ -158,17 +158,16 @@ regtest_expect_grep() {
     local pat=${1//\//\\/}
     shift
     if ! (
-        set +o pipefail
-        pidfile=$(mktemp "$regtest_tmp/regtest-pid-XXXXX")
-        regtest_on_exit "rm $(printf %q "$pidfile")"
         regtest_kill_children_on_exit
-        { "$@" & echo $! > "$pidfile"; } |& {
-            regtest_on_exit "regtest_nice_kill $(cat "$pidfile")"
-            awk -e \
-                "/$pat/"' { print $0 " \033[32m--> OK!\033[0m"; exit 0 }
-                { print }
-                ENDFILE { exit 1 }'
-        }
+        exec 3>&2
+        awk "/$pat/"' { print $0 " \033[32m--> OK!\033[0m"; exit 0 }
+            { print }
+            ENDFILE { exit 1 }' \
+            <(
+                true & # (clear $!)
+                regtest_on_exit 'regtest_nice_kill $! >&3'
+                "$@" 2>&1 & wait
+            )
     ); then
         regtest_printn "Error: Could not find expected pattern %s in standard output/error." \
                        "$pat"
