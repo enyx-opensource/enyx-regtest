@@ -476,6 +476,14 @@ regtest_run_suites() {
     done
 }
 
+# regtest_run_suite_func <name> <function>
+regtest_run_suite_func() {
+    local name=$1 func=$2
+    regtest_start
+    regtest_on_exit regtest_finish
+    regtest_run_suite "$name" "$func"
+}
+
 # == Global Configuration
 
 # Glob of names of tests to run.

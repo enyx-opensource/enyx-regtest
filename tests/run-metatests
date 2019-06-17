@@ -27,8 +27,6 @@
     }
 }
 
-regtest_start
-
 metasuite() {
 ##################################################################################################
 
@@ -182,5 +180,4 @@ regtest meta-checksum-file-bad-checksum-no-diff \
 ##################################################################################################
 }
 
-regtest_on_exit 'regtest_finish'
-regtest_run_suite metasuite metasuite
+regtest_run_suite_func metasuite metasuite

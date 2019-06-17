@@ -19,14 +19,10 @@
 #
 # Or, to have all tests in one place, inline:
 #
-#     regtest_start
-#
 #     mysuite() {
 #     <test cases>
 #     }
-#     regtest_run_suite mysuite mysuite
-#
-#     regtest_finish
+#     regtest_run_suite_func mysuite mysuite
 
 . "$(readlink -m "$BASH_SOURCE/..")"/framework.sh
 
