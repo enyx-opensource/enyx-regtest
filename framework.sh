@@ -286,7 +286,6 @@ regtest_impl() {
     for out_name in $_outputs; do
         # Test has outputs.
         regtest_printn 'Comparing output and reference (%s)...' "${out_name##*.}"
-        local ret=0
         if [[ ! -e "$regtest_refdir/$out_name" ]]; then
             if [[ $regtest_generate ]]; then
                 regtest_printn "Moving output file to reference directory..."
@@ -298,9 +297,8 @@ regtest_impl() {
                 return
             fi
         fi
-        regtest_ref_diff "$out_name" || ret=$?
-        if [[ $ret != 0 ]]; then
-            [[ $ret == $regtest_ret_fatal ]] && {
+        regtest_ref_diff "$out_name" || {
+            [[ $? == $regtest_ret_fatal ]] && {
                 regtest_record_status "$_name" fatal
                 _normal_exit=1
                 return
@@ -315,7 +313,7 @@ regtest_impl() {
             fi
             _normal_exit=1
             return
-        fi
+        }
         # OK. Remove the output.
         rm -r "$regtest_outdir/$out_name"
     done
