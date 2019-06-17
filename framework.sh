@@ -6,6 +6,13 @@ set -euo pipefail
 
 . "$(readlink -m "$BASH_SOURCE/..")"/utils.sh
 
+# Check dependencies.
+command -v column &>/dev/null || {
+    regtest_printn >&2 '%s %s' 'Error: Required command `column` not found.' \
+                               'Try installing `bsdmainutils`.'
+    exit 1
+}
+
 # List of found tests (newline-delimited).
 _regtest_found_file=$regtest_tmp/found
 # Test statuses (newline-delimited). Record format: `<test> <status> <failure-detail> <time>`.

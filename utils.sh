@@ -53,6 +53,16 @@ regtest_printn() {
     printf "$regtest_print_prefix$1\n" "${@:2}"
 }
 
+# Check dependencies.
+command -v ps &>/dev/null || {
+    regtest_printn >&2 '%s %s' 'Required command `ps` not found.' 'Try installing `procps`.'
+    exit 1
+}
+command -v gawk &>/dev/null || {
+    regtest_printn >&2 '%s %s' 'Required command `gawk` not found.' 'Try installing `gawk`.'
+    exit 1
+}
+
 # command_name <command...>
 # Returns a meaningful name for the command provided in the parameter list.
 command_name() {
