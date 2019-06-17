@@ -42,6 +42,6 @@ esac | sudo docker build -t "$img" -
     [[ -d "$tmpdir" ]] || { printf >&2 '%s is not a directory!' "$tmpdir"; exit 1; }
     trash "$tmpdir"
 }
-rsync -a Makefile *.sh *.adoc *.in tests "$tmpdir/"
+rsync -a Makefile lib *.adoc *.in tests "$tmpdir/"
 
 sudo docker run -ti --rm -v "$(readlink -f "$tmpdir")":/regtest -w /regtest -t "$img" sh -c "$cmd"

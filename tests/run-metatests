@@ -4,7 +4,9 @@
 # this would be a pretty poor test (a madman can easily prove to himself that he is sane), so it
 # should be run in conjunction with `simple-test`.
 
-[[ -n "${ENYX_REGTEST_DIR-}" ]] || ENYX_REGTEST_DIR=..
+set -eu
+
+[[ -n "${ENYX_REGTEST_DIR-}" ]] || ENYX_REGTEST_DIR=../lib
 
 . "$ENYX_REGTEST_DIR"/run-tests.sh
 . "$ENYX_REGTEST_DIR"/utils-extra.sh
@@ -116,6 +118,7 @@ checksum_metarun() {
     origdir=$PWD
     mkdir -p "$dir"
     (
+        export ENYX_REGTEST_DIR=$(readlink -f "$ENYX_REGTEST_DIR")
         cd "$dir"
         trap 'rm $links && rm -rf out log' EXIT
         for l in $links; do
@@ -124,7 +127,7 @@ checksum_metarun() {
         export LC_ALL=C \
                REGTEST_EXAMPLE_EXTRA_SETUP='. "$ENYX_REGTEST_DIR"/checksum-files.sh' \
                REGTEST_EXAMPLE_SUITE_FILES='ascii misc'
-        ENYX_REGTEST_DIR=$origdir/.. "$@" |& replace_date_and_time >> "$out"
+        "$@" |& replace_date_and_time >> "$out"
     )
 }
 

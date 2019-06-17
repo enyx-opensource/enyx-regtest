@@ -39,7 +39,7 @@ $(build)/enyx-regtest.pc: enyx-regtest.pc.in $(build)/conf
 
 prepare-tests:
 	mkdir -p $(build)/test-copy/tests/example
-	cp -a *.sh tests $(build)/test-copy/
+	cp -a lib tests $(build)/test-copy/
 
 chronic := $(shell command -v chronic >/dev/null && echo chronic)
 
@@ -74,7 +74,7 @@ ci:
 
 # === Install
 
-lib := framework.sh utils.sh utils-extra.sh checksum-files.sh run-tests.sh
+lib := lib/framework.sh lib/utils.sh lib/utils-extra.sh lib/checksum-files.sh lib/run-tests.sh
 
 install: install-doc install-lib
 
