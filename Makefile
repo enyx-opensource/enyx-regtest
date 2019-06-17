@@ -37,11 +37,24 @@ $(build)/enyx-regtest.pc: enyx-regtest.pc.in $(build)/conf
 
 # === Test
 
-test:
+prepare-tests:
 	mkdir -p $(build)/test-copy/tests/example
 	cp -a *.sh tests $(build)/test-copy/
-	cd $(build)/test-copy/tests && chronic ./simple-test
+
+chronic := $(shell command -v chronic >/dev/null && echo chronic)
+
+simple-test: prepare-tests
+	cd $(build)/test-copy/tests && $(chronic) ./simple-test
+
+metatest: prepare-tests
 	cd $(build)/test-copy/tests && ./run-metatests
+
+test: simple-test metatest
+
+# For centos 7.
+metatest-no-timeout-test: prepare-tests
+	cd $(build)/test-copy/tests && ./run-metatests --exclude meta-suite-timeout
+test-no-timeout-test: simple-test metatest-no-timeout-test
 
 cicmd := ./tests/ci $(build)/ci
 ci:
@@ -54,13 +67,10 @@ ci:
 
 	# Centos 6 uses bash 4.1, gawk 3.x (not 4.x), etc. As a result, support is dismal but
 	# is mostly sufficient to just run the tests and get a binary (failure/success) result.
-	$(cicmd) centos:6 'cd tests && ./simple-test && echo NOTHING TO SEE HERE. MOVE ALONG!'
+	$(cicmd) centos:6 'make simple-test'
 
-	# On centos7, with bash 4.2, the timeout mechanism seems a bit iffy...
-	$(cicmd) centos:7 '(cd tests && \
-	                    chronic ./simple-test && \
-	                    ./run-metatests --exclude meta-suite-timeout) && \
-	                   make doc'
+	# On centos 7, with bash 4.2, the timeout mechanism seems a bit iffy...
+	$(cicmd) centos:7 'make test-no-timeout-test doc'
 
 # === Install
 
@@ -82,5 +92,5 @@ uninstall:
 # ===
 
 .PHONY: all doc html man \
-        test ci \
+        prepare-tests simple-test metatest test metatest-no-timeout-test test-no-timeout-test ci \
         install install-doc install-man install-html install-lib uninstall
