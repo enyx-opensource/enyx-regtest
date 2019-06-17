@@ -13,12 +13,12 @@ _regtest_on_exit=()
 _regtest_kill_children_on_exit=()
 
 regtest_on_exit_handler() {
-    if [[ "${_regtest_kill_children_on_exit[$BASH_SUBSHELL]-}" ]]; then
+    if [[ "${_regtest_kill_children_on_exit[$BASHPID]-}" ]]; then
         eval "kill \$(ps -o pid= --ppid $BASHPID)" 2>/dev/null || true
         wait 2>/dev/null || true
     fi
     local _regtest_on_exit_status=0
-    eval "${_regtest_on_exit[$BASH_SUBSHELL]-}"
+    eval "${_regtest_on_exit[$BASHPID]-}"
     return "$_regtest_on_exit_status"
 }
 
@@ -27,9 +27,9 @@ regtest_on_exit_handler() {
 # be executed in _reverse_ order upon exiting. In the case of an ordinary exit (the process was
 # not killed), the subshell will exit with the last non-zero return code.
 regtest_on_exit() {
-    _regtest_on_exit[$BASH_SUBSHELL]="$(
+    _regtest_on_exit[$BASHPID]="$(
         printf '{ %s; } || _regtest_on_exit_status=$?; %s' \
-                "$*" "${_regtest_on_exit[$BASH_SUBSHELL]-}"
+                "$*" "${_regtest_on_exit[$BASHPID]-}"
     )"
     trap 'regtest_on_exit_handler' EXIT
 }
@@ -38,7 +38,7 @@ regtest_on_exit() {
 # Kill all child processes on subshell exit. If other cleanup operations have also been setup
 # through `regtest_on_exit`, child processes will be killed before running these commands.
 regtest_kill_children_on_exit() {
-    _regtest_kill_children_on_exit[$BASH_SUBSHELL]=1
+    _regtest_kill_children_on_exit[$BASHPID]=1
     trap 'regtest_on_exit_handler' EXIT
 }
 
