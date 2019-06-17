@@ -128,7 +128,7 @@ regtest() {
     fi
     printf '%s\n' "$name" >> "$_regtest_found_file"
 
-    local dir=$regtest_inputdir/$regtest_dir
+    local dir=$regtest_inputdir${regtest_dir+/$regtest_dir}
 
     local args=("${@/'{}'/$dir}")
     local args=("${args[@]/'{ref}'/$regtest_refdir}")
