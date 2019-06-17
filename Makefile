@@ -40,6 +40,7 @@ $(build)/enyx-regtest.pc: enyx-regtest.pc.in $(build)/conf
 safer_rm_rf = @[ $(words $(1)) != 1 ] && exit 1; echo rm -rf -- $(1); rm -rf -- $(1)
 
 prepare-tests:
+	$(call safer_rm_rf,$(build)/test-copy)
 	mkdir -p $(build)/test-copy/tests/example
 	cp -a lib tests $(build)/test-copy/
 
