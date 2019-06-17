@@ -37,6 +37,8 @@ $(build)/enyx-regtest.pc: enyx-regtest.pc.in $(build)/conf
 
 # === Test
 
+safer_rm_rf = @[ $(words $(1)) != 1 ] && exit 1; echo rm -rf -- $(1); rm -rf -- $(1)
+
 prepare-tests:
 	mkdir -p $(build)/test-copy/tests/example
 	cp -a lib tests $(build)/test-copy/
@@ -84,10 +86,10 @@ install-lib: $(lib) $(build)/enyx-regtest.pc
 	install -m 644 $(build)/enyx-regtest.pc $(libdir)/pkgconfig
 
 uninstall:
-	rm -rf $(man7dir)/enyx-regtest.7 \
-	       $(docdir) \
-	       $(libdir)/enyx-regtest \
-	       $(libdir)/pkgconfig/enyx-regtest.pc
+	$(call safer_rm_rf,$(man7dir)/enyx-regtest.7)
+	$(call safer_rm_rf,$(docdir))
+	$(call safer_rm_rf,$(libdir)/enyx-regtest)
+	$(call safer_rm_rf,$(libdir)/pkgconfig/enyx-regtest.pc)
 
 # ===
 
