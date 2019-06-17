@@ -14,12 +14,13 @@ img=enyx-regtest-ci-${baseimg/:/}
 # `moreutils`    for `chronic`
 # `bsdmainutils` for `column`
 # `git`          for `git diff`
+# `procps`       for `ps` (not installed by default on the debian:9 image)
 
 case $baseimg in
 debian*|ubuntu*)
     echo "FROM $baseimg"
     echo "RUN apt-get update && \\"
-    echo "    apt-get install -y make moreutils gawk bsdmainutils git"
+    echo "    apt-get install -y make moreutils gawk bsdmainutils git procps"
     echo "RUN apt-get install -y asciidoctor"
     ;;
 centos*)
@@ -27,7 +28,9 @@ centos*)
     echo "RUN yum install -y epel-release && \\"
     echo "    yum update -y && \\"
     echo "    yum install -y make moreutils gawk git"
-    echo "RUN yum install -y asciidoctor"
+    if [[ "$baseimg" != centos:6* ]]; then
+        echo "RUN yum install -y asciidoctor"
+    fi
     ;;
 *)
     echo >&2 "Unhandled base image: $baseimg"

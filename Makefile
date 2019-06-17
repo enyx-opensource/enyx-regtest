@@ -42,27 +42,23 @@ test:
 	cd tests && ./run-metatests
 
 cicmd := ./tests/ci $(build)/ci
-test_bugged_timeout := \
-    (cd tests && \
-     chronic ./simple-test && \
-     ./run-metatests --exclude meta-suite-timeout)
 ci:
 	$(cicmd) debian:8 'make test' # (debian 8's version of asciidoctor is too old)
 	$(cicmd) debian:9 'make test doc'
 
 	$(cicmd) ubuntu:16.04 'make test doc'
 	$(cicmd) ubuntu:18.04 'make test doc'
+	$(cicmd) ubuntu:rolling 'make test doc'
 
-	# On ubuntu 19.04 (current "rolling"), a bug currently in bash 5.0 (.3) causes the timeout
-	# mechanism to stall when triggered. TODO: Remove this comment and
-	# `$(test_bugged_timeout)` when a fix is merged into ubuntu.
-	# Bug report: http://lists.gnu.org/archive/html/bug-bash/2019-06/msg00000.html
-	$(cicmd) ubuntu:rolling '$(test_bugged_timeout) && make doc'
-
-	# $(cicmd) centos:6 # doesn't work due to old bash (4.1; need 4.2) and gawk (3; need 4)
+	# Centos 6 uses bash 4.1, gawk 3.x (not 4.x), etc. As a result, support is dismal but
+	# is mostly sufficient to just run the tests and get a binary (failure/success) result.
+	$(cicmd) centos:6 'cd tests && ./simple-test && echo NOTHING TO SEE HERE. MOVE ALONG!'
 
 	# On centos7, with bash 4.2, the timeout mechanism seems a bit iffy...
-	$(cicmd) centos:7 '$(test_bugged_timeout) && make doc'
+	$(cicmd) centos:7 '(cd tests && \
+	                    chronic ./simple-test && \
+	                    ./run-metatests --exclude meta-suite-timeout) && \
+	                   make doc'
 
 # === Install
 
