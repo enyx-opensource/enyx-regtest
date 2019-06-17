@@ -10,7 +10,7 @@
 #
 #     regtest_launch() { regtest_launch_with_tty_hack "$@"; }
 regtest_launch_with_tty_hack() {
-    local ttyso=$regtest_tmp/regtest-ttyseverywhere.so
+    local ttyso=$_regtest_tmp/regtest-ttyseverywhere.so
     if [[ "${LD_PRELOAD-}" == "$ttyso" ]]; then
         "$@"
     else
@@ -26,7 +26,7 @@ regtest_launch_with_tty_hack() {
 # clean it up.
 regtest_temp_pipe() {
     local pipe
-    pipe=$(mktemp -u "$regtest_tmp/regtest-pipe-XXXXX")
+    pipe=$(mktemp -u "$_regtest_tmp/regtest-pipe-XXXXX")
     mkfifo -m600 "$pipe"
     printf '%s\n' "$pipe"
 }
@@ -148,13 +148,13 @@ regtest_expect_exit_status() {
             cat
         else
             # Prevent [REGTEST] lines and other forwarded lines from being forwarded.
-            sed -r "s/^.*$(regtest_forward_command_output_full_pattern)/(regtest-ignore)\0/I"
+            sed -r "s/^.*$(_regtest_forward_command_output_full_pattern)/(regtest-ignore)\0/I"
         fi
     }
     pipestatus=("${PIPESTATUS[@]}")
     [[ ${pipestatus[1]} == 0 ]] || {
         regtest_printn >&2 'sed failed!'
-        return $regtest_ret_fatal
+        return $_regtest_ret_fatal
     }
     [[ ${pipestatus[0]} == "$n" ]] || {
         regtest_printn >&2 'Expected exit status %s; got %s.' "$n" "${pipestatus[0]}"

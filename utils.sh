@@ -6,13 +6,13 @@ _regtest_utils_sh=1
 # = Test Utilities
 
 # Special return codes.
-regtest_ret_fatal=100
-regtest_ret_timeout=101
+_regtest_ret_fatal=100
+_regtest_ret_timeout=101
 
 _regtest_on_exit=()
 _regtest_kill_children_on_exit=()
 
-regtest_on_exit_handler() {
+_regtest_on_exit_handler() {
     if [[ "${_regtest_kill_children_on_exit[$BASHPID]-}" ]]; then
         eval "kill \$(ps -o pid= --ppid $BASHPID)" 2>/dev/null || true
         wait 2>/dev/null || true
@@ -31,7 +31,7 @@ regtest_on_exit() {
         printf '{ %s; } || _regtest_on_exit_status=$?; %s' \
                 "$*" "${_regtest_on_exit[$BASHPID]-}"
     )"
-    trap 'regtest_on_exit_handler' EXIT
+    trap '_regtest_on_exit_handler' EXIT
 }
 
 # regtest_kill_children_on_exit
@@ -39,12 +39,12 @@ regtest_on_exit() {
 # through `regtest_on_exit`, child processes will be killed before running these commands.
 regtest_kill_children_on_exit() {
     _regtest_kill_children_on_exit[$BASHPID]=1
-    trap 'regtest_on_exit_handler' EXIT
+    trap '_regtest_on_exit_handler' EXIT
 }
 
 # A temporary directory for the whole process.
-regtest_tmp=$(mktemp -td regtest-XXXXXX)
-regtest_on_exit "rm -r $(printf %q "$regtest_tmp")"
+_regtest_tmp=$(mktemp -td regtest-XXXXXX)
+regtest_on_exit "rm -r $(printf %q "$_regtest_tmp")"
 
 regtest_print_prefix=$'\e[34;1;2m[REGTEST]\e[0m '
 
@@ -91,7 +91,7 @@ regtest_nice_kill() {
             '\e[31mError: Process %s is still alive after %s seconds.\e[0m KILL time!' \
             "$pid" "$timeout"
     kill -9 -- "$pid"
-    return $regtest_ret_fatal
+    return $_regtest_ret_fatal
 }
 
 # regtest_diff <path1> <path2>

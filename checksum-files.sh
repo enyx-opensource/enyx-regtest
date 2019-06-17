@@ -29,7 +29,7 @@ regtest_ref_checksum() {
     fi
 }
 
-# regtest_out_checksum <path>
+# regtest_out_checksum <path> (monkey-patch)
 # Just compute the checksum.
 regtest_out_checksum() {
     regtest_checksum "$1"

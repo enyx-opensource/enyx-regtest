@@ -21,7 +21,7 @@
         }
         diff -qr "$ref" "$out" >/dev/null || {
             if [[ $? == 1 ]]; then return 1
-            else return $regtest_ret_fatal
+            else return $_regtest_ret_fatal
             fi
         }
     }
