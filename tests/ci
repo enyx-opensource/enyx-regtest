@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ./tests/ci <tmpdir> <base-image> <command...>
 # Run tests inside a docker image for continuous integration (CI) purposes.
 

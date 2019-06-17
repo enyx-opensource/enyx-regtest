@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Test that `example/run-tests` exits with success when expected and, more importantly, that it
 # exits with an error on failure. This test does not use the enyx-regtest framework for the pretty

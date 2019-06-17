@@ -3,7 +3,7 @@
 # This is the main entry point for regression tests. To use it, create a `run-tests` file in the
 # same vein as the following example:
 #
-#     #!/bin/bash
+#     #!/usr/bin/env bash
 #
 #     . regtest/run-tests.sh
 #     . regtest/utils-extra.sh # (optional; if required by the test suites)

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Here, we test the test framework using the framework itself, hence the file's name. On its own,
 # this would be a pretty poor test (a madman can easily prove to himself that he is sane), so it
