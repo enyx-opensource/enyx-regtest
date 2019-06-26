@@ -69,10 +69,10 @@ $(build)/help.txt: tests/example/run-tests lib/run-tests.sh
 	{ cd tests/example && ./run-tests --help; } | awk '/^$$/ { exit } { print }' > $@
 
 $(build)/enyx-regtest.7: enyx-regtest.adoc $(build)/help.txt $(build)/function-doc
-	asciidoctor -aincludedir=$(build) -bmanpage $< --out-file $@
+	asciidoctor -aincludedir=$(build) -amanversion=$(version) -bmanpage $< --out-file $@
 
 $(build)/%.html: %.adoc $(build)/help.txt $(build)/function-doc
-	asciidoctor -aincludedir=$(build) $< --out-file $@
+	asciidoctor -aincludedir=$(build) -arevnumber=$(version) $< --out-file $@
 
 # === Test
 
