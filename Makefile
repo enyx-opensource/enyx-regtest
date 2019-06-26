@@ -74,6 +74,10 @@ $(build)/enyx-regtest.7: enyx-regtest.adoc $(build)/help.txt $(build)/function-d
 $(build)/%.html: %.adoc $(build)/help.txt $(build)/function-doc
 	asciidoctor -aincludedir=$(build) -arevnumber=$(version) $< --out-file $@
 
+ipfs_api ?= http://localhost:5001
+upload-doc: $(build)/enyx-regtest.html
+	curl -sFfile=@$< '$(ipfs_api)/api/v0/add'
+
 # === Test
 
 prepare-tests:
@@ -133,6 +137,6 @@ uninstall:
 
 # ===
 
-.PHONY: all doc html man \
+.PHONY: all doc html man upload-doc \
         prepare-tests simple-test metatest test metatest-no-timeout-test test-no-timeout-test ci \
         install install-doc install-man install-html install-lib uninstall

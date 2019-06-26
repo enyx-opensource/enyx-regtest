@@ -90,7 +90,7 @@ Build and installation
 Further Reading
 ---------------
 
-- <<enyx-regtest.adoc#,The manual page>>.
+- link:http://ipfs.io/ipfs/Qma7pzTBwCBJ9F7ZmoJNgYQUvGoUK8BH9QKjiVu1NZe6Bn[The manual page].
 - An link:example[example] (testing `asciidoctor`).
 
 Contributing
