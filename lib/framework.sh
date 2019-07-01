@@ -567,7 +567,7 @@ regtest_run_suite() {
     shift
     _regtest_kill_after_timeout "$regtest_suite_timeout" "$@" || {
         [[ $? == $_regtest_ret_timeout ]] &&
-            printf '%s[SUITE-TIMEOUT] timeout %.f\n' \
+            LC_NUMERIC=C printf '%s[SUITE-TIMEOUT] timeout %.f\n' \
                    "$name" "$(_regtest_time_to_seconds "$regtest_suite_timeout")" \
                    >>"$_regtest_status_file"
     }
