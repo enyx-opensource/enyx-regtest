@@ -90,14 +90,16 @@ chronic := $(shell command -v chronic >/dev/null && echo chronic)
 simple-test: prepare-tests
 	cd $(build)/test-copy/tests && $(chronic) ./simple-test
 
+metatest := cd $(build)/test-copy/tests && ./run-metatests --log-level=suite
+
 metatest: prepare-tests
-	cd $(build)/test-copy/tests && ./run-metatests
+	$(metatest)
 
 test: simple-test metatest
 
 # For centos 7.
 metatest-no-timeout-test: prepare-tests
-	cd $(build)/test-copy/tests && ./run-metatests --exclude meta-suite-timeout
+	$(metatest) --exclude meta-suite-timeout
 test-no-timeout-test: simple-test metatest-no-timeout-test
 
 cicmd := ./tests/ci $(build)/ci
