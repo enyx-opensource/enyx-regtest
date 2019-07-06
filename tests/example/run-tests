@@ -8,11 +8,11 @@ set -eu
 
 [[ -n "${ENYX_REGTEST_DIR-}" ]] || ENYX_REGTEST_DIR=../../lib
 
+: ${REGTEST_SUITE_TIMEOUT=5s}
+
 . "$ENYX_REGTEST_DIR"/run-tests.sh
 
 eval "${REGTEST_EXAMPLE_EXTRA_SETUP-}"
-
-: ${REGTEST_SUITE_TIMEOUT=5s}
 
 if [[ -z "${REGTEST_EXAMPLE_SUITE_FILES-}" ]]; then
     regtest_run_suites tests \
