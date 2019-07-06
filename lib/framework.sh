@@ -493,8 +493,7 @@ regtest_print_summary() {
                  -e$'s/  FAILED  /  \e[31mFAILED\e[39m  /' \
                  -e"s/^/$regtest_print_prefix/" \
                  -e$'s/$/\e[0m/')
-
-    sleep .1
+    wait_for_last_process_substitution
 
     if [[ $ret == 0 ]]; then
         regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
