@@ -485,7 +485,7 @@ regtest_print_summary() {
 
     [[ "$(wc -l "$_regtest_status_file" | gawk '{print $1}')" == \
        "$(wc -l "$_regtest_found_file" | gawk '{print $1}')" ]] || {
-        regtest_printn "\e[33;1mWarning: Not all matching tests were run!\e[0m"
+        regtest_printn "\e[31;1mError: Not all matching tests were run!\e[0m"
         return 11
     }
 
