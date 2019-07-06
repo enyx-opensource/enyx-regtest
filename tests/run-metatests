@@ -53,7 +53,7 @@ metarun() {
     local out
     out=$(readlink -f "$1")
     shift
-    (cd example && "$@") |& replace_date_and_time >> "$out"
+    (cd example && "$@") |& tee /dev/stderr | replace_date_and_time >> "$out"
 }
 
 run=(metarun {out.txt} ./run-tests --deterministic)
@@ -98,7 +98,7 @@ metarun_regtest_lines_only() {
     local out
     out=$(readlink -f "$1")
     shift
-    (cd example && "$@") |& grep REGTEST | replace_date_and_time >> "$out"
+    (cd example && "$@") |& tee /dev/stderr | grep REGTEST | replace_date_and_time >> "$out"
 }
 
 # Note: We run the "unicode" tests after the "slow" tests to check that even after the "slow" test
@@ -127,7 +127,7 @@ checksum_metarun() {
         export LC_ALL=C \
                REGTEST_EXAMPLE_EXTRA_SETUP='. "$ENYX_REGTEST_DIR"/checksum-files.sh' \
                REGTEST_EXAMPLE_SUITE_FILES='ascii misc'
-        "$@" |& replace_date_and_time >> "$out"
+        "$@" |& tee /dev/stderr | replace_date_and_time >> "$out"
     )
 }
 
