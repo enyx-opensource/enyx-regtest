@@ -280,7 +280,7 @@ _regtest_report_run_error() {
 _regtest_init_logdir() {
     mkdir -p "$regtest_logdir/$regtest_session"
     [[ -L "$regtest_logdir/last" || ! -e "$regtest_logdir/last" ]] || {
-        super_printn "Error: %s exists and is not a symbolic link." "$regtest_logdir/last"
+        regtest_printn >&2 "Error: %s exists and is not a symbolic link." "$regtest_logdir/last"
         return 1
     }
     ln -nsf "$regtest_session" "$regtest_logdir/last"
