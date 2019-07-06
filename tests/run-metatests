@@ -125,7 +125,7 @@ checksum_metarun() {
         for l in $links; do
             ln -s "$origdir/example/$l" ./
         done
-        export LC_ALL=C \
+        export LANG=C `# force gawk error message to be in english #` \
                REGTEST_EXAMPLE_EXTRA_SETUP='. "$ENYX_REGTEST_DIR"/checksum-files.sh' \
                REGTEST_EXAMPLE_SUITE_FILES='ascii misc'
         "$@" |& tee /dev/stderr | replace_date_and_time >> "$out"
