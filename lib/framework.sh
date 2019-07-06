@@ -245,7 +245,7 @@ _regtest_minutes_and_seconds() {
 # _regtest_record_status <test> <status>
 # Record that test with name <test> exited with the status described by the string <status>, which
 # must not contain spaces. If <status> is "ok", the test is considered to have succeeded,
-# otherwise it is consided to have failed.
+# otherwise it is considered to have failed.
 _regtest_record_status() {
     local test=$1 status=$2 time time_mns
 
@@ -255,7 +255,8 @@ _regtest_record_status() {
     if [[ "$status" == ok ]]; then
         regtest_printn '\e[32;1m[OK]\e[0m \e[2m%s\e[0m  %s' "$_name" "$time_mns"
     else
-        regtest_printn '\e[31;1m[FAILED]\e[0m \e[2m%s\e[0m  %s' "$_name" "$time_mns"
+        regtest_printn '\e[31;1m[FAILED]\e[0m \e[2m%s\e[0m  (%s)  %s' "$_name" "$status" \
+                                                                      "$time_mns"
     fi
 
     printf '%s %s %s\n' "$test" "$status" "$time" >> "$_regtest_status_file"
