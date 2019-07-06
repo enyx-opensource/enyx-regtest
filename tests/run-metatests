@@ -98,7 +98,8 @@ metarun_regtest_lines_only() {
     local out
     out=$(readlink -f "$1")
     shift
-    (cd example && "$@") |& tee /dev/stderr | grep REGTEST | replace_date_and_time >> "$out"
+    (cd example && "$@") |& tee /dev/stderr |
+    grep '{\[regtest\]}' | replace_date_and_time >> "$out"
 }
 
 # Note: We run the "unicode" tests after the "slow" tests to check that even after the "slow" test

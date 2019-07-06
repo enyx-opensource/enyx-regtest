@@ -12,6 +12,8 @@ set -eu
 
 . "$ENYX_REGTEST_DIR"/run-tests.sh
 
+regtest_print_prefix=$'\e[34;2m{[regtest]}\e[0m '
+
 eval "${REGTEST_EXAMPLE_EXTRA_SETUP-}"
 
 if [[ -z "${REGTEST_EXAMPLE_SUITE_FILES-}" ]]; then

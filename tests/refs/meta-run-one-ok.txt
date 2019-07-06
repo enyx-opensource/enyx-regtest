@@ -1,2 +1,2 @@
-[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m ascii-hello
-[34;1;2m[REGTEST][0m [32;1m[OK][0m [2mascii-hello[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello
+[34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello[0m  mm:ss

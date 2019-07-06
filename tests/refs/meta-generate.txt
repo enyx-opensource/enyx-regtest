@@ -1,40 +1,40 @@
-[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m ascii-hello-color
-[34;1;2m[REGTEST][0m Comparing output and reference (txt)...
-[34;1;2m[REGTEST][0m Error: Reference file not found.
-[34;1;2m[REGTEST][0m [31;1m[FAILED][0m [2mascii-hello-color[0m  mm:ss
-[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m ascii-hello-color-bad-ref-fail
-[34;1;2m[REGTEST][0m Comparing output and reference (txt)...
-[34;1;2m[REGTEST][0m Error: Reference file not found.
-[34;1;2m[REGTEST][0m [31;1m[FAILED][0m [2mascii-hello-color-bad-ref-fail[0m  mm:ss
-[34;1;2m[REGTEST][0m 
-[34;1;2m[REGTEST][0m Summary
-[34;1;2m[REGTEST][0m -------
-[34;1;2m[REGTEST][0m ascii-hello-color               [31mFAILED[0m  (missing-ref)  mm:ss
-[34;1;2m[REGTEST][0m ascii-hello-color-bad-ref-fail  [31mFAILED[0m  (missing-ref)  mm:ss
-[34;1;2m[REGTEST][0m => [31mFAILED[0m  mm:ss
-[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m ascii-hello-color
-[34;1;2m[REGTEST][0m Comparing output and reference (txt)...
-[34;1;2m[REGTEST][0m Moving output file to reference directory...
-[34;1;2m[REGTEST][0m [32;1m[OK][0m [2mascii-hello-color[0m  mm:ss
-[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m ascii-hello-color-bad-ref-fail
-[34;1;2m[REGTEST][0m Comparing output and reference (txt)...
-[34;1;2m[REGTEST][0m Moving output file to reference directory...
-[34;1;2m[REGTEST][0m [32;1m[OK][0m [2mascii-hello-color-bad-ref-fail[0m  mm:ss
-[34;1;2m[REGTEST][0m 
-[34;1;2m[REGTEST][0m Summary
-[34;1;2m[REGTEST][0m -------
-[34;1;2m[REGTEST][0m ascii-hello-color               [32mOK[0m  -  mm:ss
-[34;1;2m[REGTEST][0m ascii-hello-color-bad-ref-fail  [32mOK[0m  -  mm:ss
-[34;1;2m[REGTEST][0m => [32mOK[0m  mm:ss
-[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m ascii-hello-color
-[34;1;2m[REGTEST][0m Comparing output and reference (txt)...
-[34;1;2m[REGTEST][0m [32;1m[OK][0m [2mascii-hello-color[0m  mm:ss
-[34;1;2m[REGTEST][0m [32;1;2m[RUN][0m ascii-hello-color-bad-ref-fail
-[34;1;2m[REGTEST][0m Comparing output and reference (txt)...
-[34;1;2m[REGTEST][0m [32;1m[OK][0m [2mascii-hello-color-bad-ref-fail[0m  mm:ss
-[34;1;2m[REGTEST][0m 
-[34;1;2m[REGTEST][0m Summary
-[34;1;2m[REGTEST][0m -------
-[34;1;2m[REGTEST][0m ascii-hello-color               [32mOK[0m  -  mm:ss
-[34;1;2m[REGTEST][0m ascii-hello-color-bad-ref-fail  [32mOK[0m  -  mm:ss
-[34;1;2m[REGTEST][0m => [32mOK[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
+[34;2m{[regtest]}[0m Comparing output and reference (txt)...
+[34;2m{[regtest]}[0m Error: Reference file not found.
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color-bad-ref-fail
+[34;2m{[regtest]}[0m Comparing output and reference (txt)...
+[34;2m{[regtest]}[0m Error: Reference file not found.
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color-bad-ref-fail[0m  mm:ss
+[34;2m{[regtest]}[0m 
+[34;2m{[regtest]}[0m Summary
+[34;2m{[regtest]}[0m -------
+[34;2m{[regtest]}[0m ascii-hello-color               [31mFAILED[0m  (missing-ref)  mm:ss
+[34;2m{[regtest]}[0m ascii-hello-color-bad-ref-fail  [31mFAILED[0m  (missing-ref)  mm:ss
+[34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
+[34;2m{[regtest]}[0m Comparing output and reference (txt)...
+[34;2m{[regtest]}[0m Moving output file to reference directory...
+[34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello-color[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color-bad-ref-fail
+[34;2m{[regtest]}[0m Comparing output and reference (txt)...
+[34;2m{[regtest]}[0m Moving output file to reference directory...
+[34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello-color-bad-ref-fail[0m  mm:ss
+[34;2m{[regtest]}[0m 
+[34;2m{[regtest]}[0m Summary
+[34;2m{[regtest]}[0m -------
+[34;2m{[regtest]}[0m ascii-hello-color               [32mOK[0m  -  mm:ss
+[34;2m{[regtest]}[0m ascii-hello-color-bad-ref-fail  [32mOK[0m  -  mm:ss
+[34;2m{[regtest]}[0m => [32mOK[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
+[34;2m{[regtest]}[0m Comparing output and reference (txt)...
+[34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello-color[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color-bad-ref-fail
+[34;2m{[regtest]}[0m Comparing output and reference (txt)...
+[34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello-color-bad-ref-fail[0m  mm:ss
+[34;2m{[regtest]}[0m 
+[34;2m{[regtest]}[0m Summary
+[34;2m{[regtest]}[0m -------
+[34;2m{[regtest]}[0m ascii-hello-color               [32mOK[0m  -  mm:ss
+[34;2m{[regtest]}[0m ascii-hello-color-bad-ref-fail  [32mOK[0m  -  mm:ss
+[34;2m{[regtest]}[0m => [32mOK[0m  mm:ss
