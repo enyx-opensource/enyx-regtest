@@ -27,10 +27,7 @@ _regtest_on_exit_handler() {
 # be executed in _reverse_ order upon exiting. In the case of an ordinary exit (the process was
 # not killed), the subshell will exit with the last non-zero return code.
 regtest_on_exit() {
-    _regtest_on_exit[$BASHPID]="$(
-        printf '{ %s; } || _regtest_on_exit_status=$?; %s' \
-                "$*" "${_regtest_on_exit[$BASHPID]-}"
-    )"
+    _regtest_on_exit[$BASHPID]="{ $*; } || _regtest_on_exit_status=\$?; ${_regtest_on_exit[$BASHPID]-}"
     trap '_regtest_on_exit_handler' EXIT
 }
 
