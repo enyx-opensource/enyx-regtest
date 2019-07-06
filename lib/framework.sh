@@ -735,7 +735,20 @@ regtest_logdir=${REGTEST_LOGDIR-log}
 # By default, only files from failed runs are kept.
 regtest_keep_tmpfiles=$(if [[ -n "${REGTEST_TMPDIR-}" ]]; then echo 1; fi)
 
-: ${regtest_session=$(date +%Y-%m-%d-%H:%M:%S)}
+_regtest_unique_session() {
+    local r i
+    r=$(date +%Y-%m-%d-%H:%M:%S)
+    if [[ -e "$regtest_logdir/$r" ]]; then
+        r=$r.$(date +%N)
+        [[ -e "$r" ]] && {
+            regtest_printn >&2 "Error: No way this session already exists: '%s'!" "$r"
+            return 1
+        }
+    fi
+    echo "$r"
+}
+
+[[ "${regtest_session-}" ]] || regtest_session=$(_regtest_unique_session)
 
 # Whether to generate reference files during this run.
 regtest_generate=
