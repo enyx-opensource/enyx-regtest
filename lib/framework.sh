@@ -746,7 +746,7 @@ regtest_run_suites() {
         local timeout
         # A test suite should not take more than ~5 minutes.
         timeout=$(_regtest_suite_timeout "$dir/$suite.sh")
-        regtest_suite_timeout=$timeout regtest_run_suite "$suite" . "$dir/$suite.sh"
+        regtest_suite_timeout=$timeout regtest_run_suite "${suite//\//-}" . "$dir/$suite.sh"
     done
 }
 
