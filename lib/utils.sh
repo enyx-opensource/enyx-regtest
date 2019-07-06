@@ -14,8 +14,10 @@ _regtest_kill_children_on_exit=()
 
 _regtest_on_exit_handler() {
     if [[ "${_regtest_kill_children_on_exit[$BASHPID]-}" ]]; then
-        eval "kill \$(ps -o pid= --ppid $BASHPID)" 2>/dev/null || true
-        wait 2>/dev/null || true
+        local pid=$BASHPID pids
+        pids=$(ps -o pid= --ppid $pid)
+        kill $pids 2>/dev/null || true
+        wait $pids 2>/dev/null || true
     fi
     local _regtest_on_exit_status=0
     eval "${_regtest_on_exit[$BASHPID]-}"
