@@ -177,6 +177,10 @@ regtest() {
         shift
     done
 
+    [[ "$name" < 0 ]] && {
+        regtest_printn >&2 'Error: Bad test name: %s. Cannot start with punctuation.' "$name"
+        return 1
+    }
     [[ "$name" =~ $regtest_name_regex ]] || {
         regtest_printn >&2 'Error: Bad test name: %s. Was expected to match %s' \
                            "$name" "$regtest_name_regex"
