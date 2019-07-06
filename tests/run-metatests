@@ -110,6 +110,17 @@ regtest meta-suite-timeout \
     metarun_regtest_lines_only {out.txt} \
     ./run-tests --deterministic 'slow-*' 'unicode-*'
 
+regtest meta-loglevel-suite \
+    regtest_expect_exit_status 10 \
+    "${run[@]}" --log-level suite ascii-hello ascii-hello-bad-case-fail 'unicode*'
+
+regtest meta-loglevel-error \
+    regtest_expect_exit_status 10 \
+    "${run[@]}" --log-level error ascii-hello ascii-hello-bad-case-fail 'unicode*'
+
+regtest meta-loglevel-error-noerror \
+    "${run[@]}" --log-level error ascii-hello 'unicode*'
+
 # == `checksum-files` Tests
 
 checksum_metarun() {
