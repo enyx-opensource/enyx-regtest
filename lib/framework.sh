@@ -256,8 +256,9 @@ _regtest_record_status() {
     if [[ "$status" == ok ]]; then
         regtest_printn '\e[32;1m[OK]\e[0m \e[2m%s\e[0m  %s' "$_name" "$time_mns"
     else
-        regtest_printn '\e[31;1m[FAILED]\e[0m \e[2m%s\e[0m  (%s)  %s' "$_name" "$status" \
-                                                                      "$time_mns"
+        regtest_printn '\e[%s;1m[FAILED]\e[0m \e[2m%s\e[0m  (%s)  %s' \
+                "$(if [[ "$status" != *'(ignored)' ]]; then echo 31; else echo 33; fi)" \
+                "$_name" "$status" "$time_mns"
     fi
 
     printf '%s %s %s %s\n' "$regtest_suite" "$test" "$status" "$time" >> "$_regtest_status_file"
@@ -484,10 +485,11 @@ regtest_print_summary() {
             else
                 if [[ "$status" != *'(ignored)' ]]; then
                     ret=10
+                    printf "%s FAILED (%s) %s\n" "$testname" "$status" "$time"
                 else
                     ((ignored_failures++))
+                    printf "%s failed (%s) %s\n" "$testname" "$status" "$time"
                 fi
-                printf "%s FAILED (%s) %s\n" "$testname" "$status" "$time"
             fi
         fi
     done < <(LC_ALL=C sort -sk1,1 "$_regtest_status_file") \
@@ -495,6 +497,7 @@ regtest_print_summary() {
              sed -e$'s/^!!!!!!\([^ ]*\)/\e[1mSUITE \\1/' \
                  -e$'s/  OK  /  \e[32mOK\e[39m  /' \
                  -e$'s/  FAILED  /  \e[31mFAILED\e[39m  /' \
+                 -e$'s/  failed  /  \e[33mFAILED\e[39m  /' \
                  -e"s/^/$regtest_print_prefix/" \
                  -e$'s/$/\e[0m/')
     wait_for_last_process_substitution
