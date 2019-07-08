@@ -13,6 +13,9 @@ _regtest_on_exit=()
 _regtest_kill_children_on_exit=()
 
 _regtest_on_exit_handler() {
+    # Don't react to ordinary TERM signals during cleanup. This implies that this cleanup phase
+    # should be non-blocking and fast.
+    trap '' TERM
     if [[ "${_regtest_kill_children_on_exit[$BASHPID]-}" ]]; then
         local pid=$BASHPID pids
         pids=$(ps -o pid= --ppid $pid)
