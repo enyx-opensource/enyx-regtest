@@ -1,0 +1,21 @@
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m ascii
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello
+[34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [2mascii[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m slowgrep
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m slow-hello-1
+[34;2m{[regtest]}[0m [32;1m[OK][0m [2mslow-hello-1[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1;2m[RUN][0m slow-hello-2
+[34;2m{[regtest]}[0m [31;1;1m[INTERRUPTED][0m [2mslow-hello-2[0m
+[34;2m{[regtest]}[0m Log: log/YYYY-MM-DD-hh:mm:ss/slow-hello-2
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mslow-hello-2[0m  (interrupted)  mm:ss
+[34;2m{[regtest]}[0m [31;1m[SUITE KILLED][0m [2mslowgrep[0m  mm:ss
+[34;2m{[regtest]}[0m 
+[34;2m{[regtest]}[0m Summary
+[34;2m{[regtest]}[0m -------
+[34;2m{[regtest]}[0m [1mSUITE ascii     [32mOK[39m      -              mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello     [32mOK[39m      -              mm:ss[0m
+[34;2m{[regtest]}[0m [1mSUITE slowgrep  [31mFAILED[39m  (killed)       mm:ss[0m
+[34;2m{[regtest]}[0m slow-hello-1    [32mOK[39m      -              mm:ss[0m
+[34;2m{[regtest]}[0m slow-hello-2    [31mFAILED[39m  (interrupted)  mm:ss[0m
+[34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss

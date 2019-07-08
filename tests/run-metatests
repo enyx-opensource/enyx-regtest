@@ -110,6 +110,25 @@ regtest meta-suite-timeout \
     metarun_regtest_lines_only {out.txt} \
     ./run-tests --deterministic 'slow-*' 'unicode-*'
 
+kill_after() {
+(
+    local t=$1 pid=$BASHPID
+    shift
+    regtest_kill_children_on_exit
+    { sleep "$t"; kill $pid; } &
+    "$@"
+)
+}
+
+# Check that the test (slow-hello-2) stops when killed, that it is reported as "interrupted", that
+# the suite (slowgrep) is reported as "killed", and that a summary is still printed at the end.
+regtest meta-suite-killed \
+    regtest_env REGTEST_EXAMPLE_SUITE_FILES='ascii slowgrep unicode' \
+    regtest_expect_exit_status 143 \
+    metarun_regtest_lines_only {out.txt} \
+    kill_after .5s \
+    ./run-tests --deterministic ascii-hello 'slow-*' 'unicode-*'
+
 regtest meta-loglevel-suite \
     regtest_expect_exit_status 10 \
     "${run[@]}" --log-level suite ascii-hello ascii-hello-bad-case-fail 'unicode*'
