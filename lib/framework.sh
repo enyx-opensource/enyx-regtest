@@ -645,28 +645,13 @@ _regtest_filter_suite_output() {
     '
 }
 
-## regtest_run_suite <name> <command...>
-# Run a single test suite <name>, using the command <command...>. <command...> will be killed if
-# it exceeds 'regtest_suite_timeout'.
-regtest_run_suite() {
-    local name=$1 time r=0 suite_status= tmp_status_file
-    shift
+# _regtest_append_suite_status <suite> <start-time> <suite-return-code>
+# Append status of suite <suite> to main status file.
+_regtest_record_suite_status() {
+    local name=$1 start_time=$2 r=$3
+    local tmp_status_file=$_regtest_status_file.$name
 
-    time=$(date +%s)
-    tmp_status_file=$_regtest_status_file.$name
-    _regtest_init_logdir
-
-    {
-        regtest_suite=$name \
-        _regtest_status_file=$tmp_status_file \
-        _regtest_kill_after_timeout "$regtest_suite_timeout" "$@" || r=$?
-    } &> >(
-        regtest_on_exit cat # (prevents SIGPIPE issues on ctrl-C)
-        _regtest_filter_suite_output "$name"
-    )
-    wait_for_last_process_substitution
-
-    time=$(($(date +%s) - time))
+    time=$(($(date +%s) - start_time))
     time_mns=$(_regtest_minutes_and_seconds "$time")
     [[ -s "$tmp_status_file" ]] && suite_status=$(_suite_status "$tmp_status_file")
 
@@ -688,6 +673,10 @@ regtest_run_suite() {
         regtest_printn '\e[31;1m[SUITE TIMED OUT]\e[0m \e[2m%s\e[0m  %s' "$name" "$time_mns"
         printf '%s - timeout %s\n' "$name" "$time" >> "$_regtest_status_file"
         ;;
+    '')
+        regtest_printn '\e[31;1m[SUITE KILLED]\e[0m \e[2m%s\e[0m  %s' "$name" "$time_mns"
+        printf '%s - killed %s\n' "$name" "$time" >> "$_regtest_status_file"
+        ;;
     *)
         regtest_printn '\e[31;1m[SUITE FAILED UNEXPECTEDLY?!]\e[0m \e[2m%s\e[0m  %s' "$name" \
                                                                                      "$time_mns"
@@ -695,10 +684,34 @@ regtest_run_suite() {
         ;;
     esac
 
-    [[ ! -e "$tmp_status_file" ]] || {
+    if [[ -e "$tmp_status_file" ]]; then
         cat "$tmp_status_file" >> "$_regtest_status_file"
         rm "$tmp_status_file"
-    }
+    fi
+}
+
+## regtest_run_suite <name> <command...>
+# Run a single test suite <name>, using the command <command...>. <command...> will be killed if
+# it exceeds 'regtest_suite_timeout'.
+regtest_run_suite() {
+(
+    local name=$1 time r= suite_status= tmp_status_file
+    shift
+
+    time=$(date +%s)
+    _regtest_init_logdir
+    tmp_status_file=$_regtest_status_file.$name
+
+    regtest_kill_children_on_exit
+    regtest_on_exit '_regtest_record_suite_status "$name" "$time" "$r"'
+
+    {
+        regtest_kill_children_on_exit
+        regtest_suite=$name \
+        _regtest_status_file=$tmp_status_file \
+        _regtest_kill_after_timeout "$regtest_suite_timeout" "$@"
+    } |& _regtest_filter_suite_output "$name" && r=0 || r=${PIPESTATUS[0]}
+)
 }
 
 ## regtest_finish
