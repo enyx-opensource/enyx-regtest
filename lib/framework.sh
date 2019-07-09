@@ -311,7 +311,7 @@ _regtest_forward_command_output() {
     else
         gawk -vIGNORECASE=1 "
             /^\(regtest-ignore\)/ { next }
-            /$(_regtest_forward_command_output_full_pattern)/ { print }
+            /$(_regtest_forward_command_output_full_pattern)/ { print; fflush() }
             { next }"
     fi
 }
