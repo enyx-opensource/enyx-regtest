@@ -474,6 +474,7 @@ regtest_print_summary() {
                 [[ $silent ]] || printf '!!!!!!%s OK - %s\n' "$suite" "$time"
                 print_ok_tests=$([[ $regtest_summary_loglevel == 'test' ]] && echo 1 || true)
             else
+                ret=10
                 printf '!!!!!!%s FAILED (%s) %s\n' "$suite" "$status" "$time"
                 print_ok_tests=1
             fi
