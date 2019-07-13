@@ -1,16 +1,22 @@
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
 [34;2m{[regtest]}[0m Comparing output and reference (txt)...
 [34;2m{[regtest]}[0m Output differs from reference output 'out/ascii-hello-color.txt'.
 [34;2m{[regtest]}[0m (...but found no difference during comparison!)
-[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color[0m  mm:ss
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color[0m  (diff)  mm:ss
+[34;2m{[regtest]}[0m [31;1m[SUITE FAILED][0m [1;2mascii[0;1m  (1/1)  mm:ss[0m
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m misc[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m misc-dir-output
 [34;2m{[regtest]}[0m Comparing output and reference (dir)...
 [34;2m{[regtest]}[0m Output differs from reference output 'out/misc-dir-output.dir'.
 [34;2m{[regtest]}[0m (...but found no difference during comparison!)
-[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mmisc-dir-output[0m  mm:ss
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mmisc-dir-output[0m  (diff)  mm:ss
+[34;2m{[regtest]}[0m [31;1m[SUITE FAILED][0m [1;2mmisc[0;1m  (1/1)  mm:ss[0m
 [34;2m{[regtest]}[0m 
 [34;2m{[regtest]}[0m Summary
 [34;2m{[regtest]}[0m -------
-[34;2m{[regtest]}[0m ascii-hello-color  [31mFAILED[0m  (diff)  mm:ss
-[34;2m{[regtest]}[0m misc-dir-output    [31mFAILED[0m  (diff)  mm:ss
+[34;2m{[regtest]}[0m [1mSUITE ascii        [31mFAILED[39m  (1/1)   mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-color  [31mFAILED[39m  (diff)  mm:ss[0m
+[34;2m{[regtest]}[0m [1mSUITE misc         [31mFAILED[39m  (1/1)   mm:ss[0m
+[34;2m{[regtest]}[0m misc-dir-output    [31mFAILED[39m  (diff)  mm:ss[0m
 [34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss

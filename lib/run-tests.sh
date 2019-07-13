@@ -45,6 +45,11 @@ usage() {
     echo '    --exclude=<...>       exclude tests matching the given glob'
     echo '        Can be called multiple times.'
     echo '    --no-timeout          disable test suite timeout'
+    echo '    -L,--log-level=<...>  Type of information to log on the standard output.'
+    echo '        From least to most inclusive, one of:'
+    echo '        * error: log errors;'
+    echo '        * suite: ...and test suite information;'
+    echo '        * test:  ...and information about each test.'
     echo
     echo 'Environment:'
     echo '    REGTEST_INPUTDIR      directory containing input files ({} prefix)'
@@ -58,8 +63,8 @@ usage() {
 list=
 print=
 
-opts=$(getopt -o hlpe:gf::D \
-              --long help,list,print,extra-args:,generate,forward-output::,deterministic,exclude:,no-timeout -- "$@") || exit 1
+opts=$(getopt -o hlpe:gf::DL: \
+              --long help,list,print,extra-args:,generate,forward-output::,deterministic,log-level:,exclude:,no-timeout -- "$@") || exit 1
 eval set -- "$opts"
 while true ; do
     case "$1" in
@@ -70,6 +75,7 @@ while true ; do
         -g|--generate      ) regtest_generate=1; shift;;
         -f|--forward-output) regtest_forward_output_pattern=${2:-.}; shift 2;;
         -D|--deterministic ) regtest_run_suites_in_random_order=; shift;;
+        -L|--log-level     ) regtest_run_loglevel=$2; regtest_summary_loglevel=$2; shift 2;;
         --exclude          ) regtest_exclude_globs+=("$2"); shift 2;;
         --no-timeout       ) regtest_suite_timeout=inf; shift;;
         --                 ) shift; break;;
@@ -78,35 +84,37 @@ while true ; do
 done
 regtest_globs=("${@-*}")
 
-if [[ $list && $print ]]; then
-    regtest_printn >&2 "Error: Can't have both --list and --print."
-    exit 1
-fi
+if [[ $list || $print ]]; then
+    if [[ $list && $print ]]; then
+        regtest_printn >&2 "Error: Can't have both --list and --print."
+        exit 1
+    fi
 
-if [[ $list ]]; then
     : ${regtest_tmpdir:=tmp}
     regtest_run_suites_in_random_order=
-    regtest_impl() {
-        [[ "$name" =~ $regtest_name_regex ]]
-        printf '%s\n' "${BASH_REMATCH[1]}"
-    }
-elif [[ $print ]]; then
-    : ${regtest_tmpdir:=tmp}
-    regtest_run_suites_in_random_order=
-    regtest_impl() {
-        regtest_printn '\e[34m%s\e[0m' "$name"
-        printf '%s' "$1"
-        local i last
-        for i in "${@:2}"; do
-            if [[ "$i" == -* || ! "${last-}" =~ ^-.*[^-] ]]; then
-                printf ' \e[36;2m\\\e[0m\n%s' "$i"
-            else
-                printf ' %s' "$i"
-            fi
-            last=$i
-        done
-        printf '\n\n'
-    }
+    regtest_run_suite() { "${@:2}"; }
+
+    if [[ $list ]]; then
+        regtest_impl() {
+            [[ "$name" =~ $regtest_name_regex ]]
+            printf '%s\n' "${BASH_REMATCH[1]}"
+        }
+    elif [[ $print ]]; then
+        regtest_impl() {
+            regtest_printn '\e[34m%s\e[0m' "$name"
+            printf '%s' "$1"
+            local i last
+            for i in "${@:2}"; do
+                if [[ "$i" == -* || ! "${last-}" =~ ^-.*[^-] ]]; then
+                    printf ' \e[36;2m\\\e[0m\n%s' "$i"
+                else
+                    printf ' %s' "$i"
+                fi
+                last=$i
+            done
+            printf '\n\n'
+        }
+    fi
 fi
 
 regtest_kill_children_on_exit

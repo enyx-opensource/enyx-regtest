@@ -1,3 +1,4 @@
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello[0m  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-bad-case-fail
@@ -6,28 +7,28 @@
 [0;2;2m[.......] [34;2;2m{[regtest]}[0;2m Running test command 'grep hello inputs/ascii/hello.txt'.
 [34;2m{[regtest]}[0m [34;1;2m============================[0m
 [34;2m{[regtest]}[0m Full log: less -R log/YYYY-MM-DD-hh:mm:ss/ascii-hello-bad-case-fail
-[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-bad-case-fail[0m  mm:ss
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-bad-case-fail[0m  (run)  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-bad-case-warn
 [34;2m{[regtest]}[0m Error: Command ascii-hello-bad-case-warn exited with error (code 1)
 [34;2m{[regtest]}[0m [34;1;2m=== Last 20 lines of log ===[0m
 [0;2;2m[.......] [34;2;2m{[regtest]}[0;2m Running test command 'grep hello inputs/ascii/hello.txt'.
 [34;2m{[regtest]}[0m [34;1;2m============================[0m
 [34;2m{[regtest]}[0m Full log: less -R log/YYYY-MM-DD-hh:mm:ss/ascii-hello-bad-case-warn
-[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-bad-case-warn[0m  mm:ss
+[34;2m{[regtest]}[0m [33;1m[FAILED][0m [2mascii-hello-bad-case-warn[0m  (run(ignored))  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-bad-case-warn-fail
 [34;2m{[regtest]}[0m Error: Command ascii-hello-bad-case-warn-fail exited with error (code 1)
 [34;2m{[regtest]}[0m [34;1;2m=== Last 20 lines of log ===[0m
 [0;2;2m[.......] [34;2;2m{[regtest]}[0;2m Running test command 'grep hello inputs/ascii/hello.txt'.
 [34;2m{[regtest]}[0m [34;1;2m============================[0m
 [34;2m{[regtest]}[0m Full log: less -R log/YYYY-MM-DD-hh:mm:ss/ascii-hello-bad-case-warn-fail
-[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-bad-case-warn-fail[0m  mm:ss
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-bad-case-warn-fail[0m  (run)  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-bad-case-multi-warn
 [34;2m{[regtest]}[0m Error: Command ascii-hello-bad-case-multi-warn exited with error (code 1)
 [34;2m{[regtest]}[0m [34;1;2m=== Last 20 lines of log ===[0m
 [0;2;2m[.......] [34;2;2m{[regtest]}[0;2m Running test command 'grep hello inputs/ascii/hello.txt'.
 [34;2m{[regtest]}[0m [34;1;2m============================[0m
 [34;2m{[regtest]}[0m Full log: less -R log/YYYY-MM-DD-hh:mm:ss/ascii-hello-bad-case-multi-warn
-[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-bad-case-multi-warn[0m  mm:ss
+[34;2m{[regtest]}[0m [33;1m[FAILED][0m [2mascii-hello-bad-case-multi-warn[0m  (run(ignored))  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-case-insensitive
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello-case-insensitive[0m  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
@@ -36,7 +37,7 @@
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color-no-ref-fail
 [34;2m{[regtest]}[0m Comparing output and reference (txt)...
 [34;2m{[regtest]}[0m Error: Reference file not found.
-[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color-no-ref-fail[0m  mm:ss
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color-no-ref-fail[0m  (missing-ref)  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color-bad-ref-fail
 [34;2m{[regtest]}[0m Comparing output and reference (txt)...
 [34;2m{[regtest]}[0m Output differs from reference output 'out/ascii-hello-color-bad-ref-fail.txt'.
@@ -50,20 +51,25 @@
 [34;2m{[regtest]}[0m [1;2m------------ 8< ------------[0m
 [34;2m{[regtest]}[0m [1mThis is a partial comparison.[0m
 [34;2m{[regtest]}[0m Full diff: less -R log/YYYY-MM-DD-hh:mm:ss/ascii-hello-color-bad-ref-fail.comparison
-[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color-bad-ref-fail[0m  mm:ss
+[34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color-bad-ref-fail[0m  (comparator)  mm:ss
+[34;2m{[regtest]}[0m [31;1m[SUITE FAILED][0m [1;2mascii[0;1m  (4/9)  mm:ss[0m
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m unicode[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m unicode-hello
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2municode-hello[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [1;2municode[0;1m  mm:ss[0m
 [34;2m{[regtest]}[0m 
 [34;2m{[regtest]}[0m Summary
 [34;2m{[regtest]}[0m -------
-[34;2m{[regtest]}[0m ascii-hello                      [32mOK[0m      -               mm:ss
-[34;2m{[regtest]}[0m ascii-hello-bad-case-fail        [31mFAILED[0m  (run)           mm:ss
-[34;2m{[regtest]}[0m ascii-hello-bad-case-multi-warn  [31mFAILED[0m  (run(ignored))  mm:ss
-[34;2m{[regtest]}[0m ascii-hello-bad-case-warn        [31mFAILED[0m  (run(ignored))  mm:ss
-[34;2m{[regtest]}[0m ascii-hello-bad-case-warn-fail   [31mFAILED[0m  (run)           mm:ss
-[34;2m{[regtest]}[0m ascii-hello-case-insensitive     [32mOK[0m      -               mm:ss
-[34;2m{[regtest]}[0m ascii-hello-color                [32mOK[0m      -               mm:ss
-[34;2m{[regtest]}[0m ascii-hello-color-bad-ref-fail   [31mFAILED[0m  (comparator)    mm:ss
-[34;2m{[regtest]}[0m ascii-hello-color-no-ref-fail    [31mFAILED[0m  (missing-ref)   mm:ss
-[34;2m{[regtest]}[0m unicode-hello                    [32mOK[0m      -               mm:ss
+[34;2m{[regtest]}[0m [1mSUITE ascii                      [31mFAILED[39m  (4/9)           mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello                      [32mOK[39m      -               mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-bad-case-fail        [31mFAILED[39m  (run)           mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-bad-case-warn        [33mFAILED[39m  (run(ignored))  mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-bad-case-warn-fail   [31mFAILED[39m  (run)           mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-bad-case-multi-warn  [33mFAILED[39m  (run(ignored))  mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-case-insensitive     [32mOK[39m      -               mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-color                [32mOK[39m      -               mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-color-no-ref-fail    [31mFAILED[39m  (missing-ref)   mm:ss[0m
+[34;2m{[regtest]}[0m ascii-hello-color-bad-ref-fail   [31mFAILED[39m  (comparator)    mm:ss[0m
+[34;2m{[regtest]}[0m [1mSUITE unicode                    [32mOK[39m      -               mm:ss[0m
+[34;2m{[regtest]}[0m unicode-hello                    [32mOK[39m      -               mm:ss[0m
 [34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss

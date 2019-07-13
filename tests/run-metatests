@@ -45,7 +45,7 @@ regtest meta-run-none \
 # Replace date and time in the output with placeholders.
 replace_date_and_time() {
     local ms=[0-6][0-9]:[0-6][0-9]
-    sed -e "s/[0-9]\{4\}-[0-1][0-9]-[0-3][0-9]-[0-2][0-9]:$ms/YYYY-MM-DD-hh:mm:ss/" \
+    sed -e "s/[0-9]\{4\}-[0-1][0-9]-[0-3][0-9]-[0-2][0-9]:$ms\(\.[0-9]\+\)\?/YYYY-MM-DD-hh:mm:ss/" \
         -e "s/$ms/mm:ss/"
 }
 
@@ -110,6 +110,36 @@ regtest meta-suite-timeout \
     metarun_regtest_lines_only {out.txt} \
     ./run-tests --deterministic 'slow-*' 'unicode-*'
 
+kill_after() {
+(
+    local t=$1 pid=$BASHPID
+    shift
+    regtest_kill_children_on_exit
+    { sleep "$t"; kill $pid; } &
+    "$@"
+)
+}
+
+# Check that the test (slow-hello-2) stops when killed, that it is reported as "interrupted", that
+# the suite (slowgrep) is reported as "killed", and that a summary is still printed at the end.
+regtest meta-suite-killed \
+    regtest_env REGTEST_EXAMPLE_SUITE_FILES='ascii slowgrep unicode' \
+    regtest_expect_exit_status 143 \
+    metarun_regtest_lines_only {out.txt} \
+    kill_after .5s \
+    ./run-tests --deterministic ascii-hello 'slow-*' 'unicode-*'
+
+regtest meta-loglevel-suite \
+    regtest_expect_exit_status 10 \
+    "${run[@]}" --log-level suite ascii-hello ascii-hello-bad-case-fail 'unicode*'
+
+regtest meta-loglevel-error \
+    regtest_expect_exit_status 10 \
+    "${run[@]}" --log-level error ascii-hello ascii-hello-bad-case-fail 'unicode*'
+
+regtest meta-loglevel-error-noerror \
+    "${run[@]}" --log-level error ascii-hello 'unicode*'
+
 # == `checksum-files` Tests
 
 checksum_metarun() {
@@ -125,7 +155,7 @@ checksum_metarun() {
         for l in $links; do
             ln -s "$origdir/example/$l" ./
         done
-        export LC_ALL=C \
+        export LANG=C `# force gawk error message to be in english #` \
                REGTEST_EXAMPLE_EXTRA_SETUP='. "$ENYX_REGTEST_DIR"/checksum-files.sh' \
                REGTEST_EXAMPLE_SUITE_FILES='ascii misc'
         "$@" |& tee /dev/stderr | replace_date_and_time >> "$out"

@@ -15,7 +15,8 @@ command -v column &>/dev/null || {
 
 # List of found tests (newline-delimited).
 _regtest_found_file=$_regtest_tmp/found
-# Test statuses (newline-delimited). Record format: `<test> <status> <failure-detail> <time>`.
+# Test statuses (newline-delimited).
+# Record format: `<suite> <test> <status> <failure-detail> <time>`.
 _regtest_status_file=$_regtest_tmp/statuses
 
 ## regtest_ref_checksum <path> (monkey-patchable)
@@ -177,6 +178,10 @@ regtest() {
         shift
     done
 
+    [[ "$name" < 0 ]] && {
+        regtest_printn >&2 'Error: Bad test name: %s. Cannot start with punctuation.' "$name"
+        return 1
+    }
     [[ "$name" =~ $regtest_name_regex ]] || {
         regtest_printn >&2 'Error: Bad test name: %s. Was expected to match %s' \
                            "$name" "$regtest_name_regex"
@@ -241,7 +246,7 @@ _regtest_minutes_and_seconds() {
 # _regtest_record_status <test> <status>
 # Record that test with name <test> exited with the status described by the string <status>, which
 # must not contain spaces. If <status> is "ok", the test is considered to have succeeded,
-# otherwise it is consided to have failed.
+# otherwise it is considered to have failed.
 _regtest_record_status() {
     local test=$1 status=$2 time time_mns
 
@@ -251,10 +256,12 @@ _regtest_record_status() {
     if [[ "$status" == ok ]]; then
         regtest_printn '\e[32;1m[OK]\e[0m \e[2m%s\e[0m  %s' "$_name" "$time_mns"
     else
-        regtest_printn '\e[31;1m[FAILED]\e[0m \e[2m%s\e[0m  %s' "$_name" "$time_mns"
+        regtest_printn '\e[%s;1m[FAILED]\e[0m \e[2m%s\e[0m  (%s)  %s' \
+                "$(if [[ "$status" != *'(ignored)' ]]; then echo 31; else echo 33; fi)" \
+                "$_name" "$status" "$time_mns"
     fi
 
-    printf '%s %s %s\n' "$test" "$status" "$time" >> "$_regtest_status_file"
+    printf '%s %s %s %s\n' "$regtest_suite" "$test" "$status" "$time" >> "$_regtest_status_file"
 }
 
 # _regtest_report_run_error <name> <logfile> <ret> [<ignored>]
@@ -304,7 +311,7 @@ _regtest_forward_command_output() {
     else
         gawk -vIGNORECASE=1 "
             /^\(regtest-ignore\)/ { next }
-            /$(_regtest_forward_command_output_full_pattern)/ { print }
+            /$(_regtest_forward_command_output_full_pattern)/ { print; fflush() }
             { next }"
     fi
 }
@@ -381,6 +388,7 @@ regtest_impl() {
         [[ \$_normal_exit ]] || {
             regtest_printn >&2 '\e[31;1;1m[INTERRUPTED]\e[0m \e[2m%s\e[0m' $(printf %q "$_name")
             regtest_printn >&2 'Log: %s' $(printf %q "$logfile")
+            _regtest_record_status "$_name" interrupted
         }"
 
     regtest_printn "Running test command '%s'." "$*" > "$logfile"
@@ -447,34 +455,56 @@ regtest_impl() {
 # - 10 otherwise (i.e. all tests were run but some failed and were not ignored).
 regtest_print_summary() {
     local total_time=$(_regtest_minutes_and_seconds "$1")
-    local ret=0 ignored_failures=0
+    local ret=0 ignored_failures=0 all_ok silent
 
-    regtest_printn ''
-    regtest_printn 'Summary'
-    regtest_printn '-------'
-    local testname status time
-    while read -r testname status time; do
+    all_ok=$(awk '$3 != "ok" { exit 1 }' "$_regtest_status_file" && echo 1 || true)
+    silent=$([[ $regtest_summary_loglevel == error && $all_ok ]] && echo 1 || true)
+
+    [[ $silent ]] || {
+        regtest_printn ''
+        regtest_printn 'Summary'
+        regtest_printn '-------'
+    }
+    local suite testname status time print_ok_tests=1
+    while read -r suite testname status time; do
         time=$(_regtest_minutes_and_seconds "$time")
-        if [[ "$status" == ok ]]; then
-            printf "%s OK - %s\n" "$testname" "$time"
-        else
-            if [[ "$status" != *'(ignored)' ]]; then
-                ret=10
+        if [[ "$testname" == - ]]; then
+            # New test suite.
+            if [[ "$status" == ok ]]; then
+                [[ $silent ]] || printf '!!!!!!%s OK - %s\n' "$suite" "$time"
+                print_ok_tests=$([[ $regtest_summary_loglevel == 'test' ]] && echo 1 || true)
             else
-                ((ignored_failures++))
+                ret=10
+                printf '!!!!!!%s FAILED (%s) %s\n' "$suite" "$status" "$time"
+                print_ok_tests=1
             fi
-            printf "%s FAILED (%s) %s\n" "$testname" "$status" "$time"
+        else
+            if [[ "$status" == ok ]]; then
+                if [[ $print_ok_tests ]]; then
+                    printf "%s OK - %s\n" "$testname" "$time"
+                fi
+            else
+                if [[ "$status" != *'(ignored)' ]]; then
+                    ret=10
+                    printf "%s FAILED (%s) %s\n" "$testname" "$status" "$time"
+                else
+                    ((ignored_failures++))
+                    printf "%s failed (%s) %s\n" "$testname" "$status" "$time"
+                fi
+            fi
         fi
-    done < <(LC_ALL=C sort "$_regtest_status_file") \
+    done < <(LC_ALL=C sort -sk1,1 "$_regtest_status_file") \
          > >(column -t |
-             sed -e"s/^/$regtest_print_prefix/" \
-                 -e$'s/  OK  /  \e[32mOK\e[0m  /' \
-                 -e$'s/  FAILED  /  \e[31mFAILED\e[0m  /')
-
-    sleep .1
+             sed -e$'s/^!!!!!!\([^ ]*\)/\e[1mSUITE \\1/' \
+                 -e$'s/  OK  /  \e[32mOK\e[39m  /' \
+                 -e$'s/  FAILED  /  \e[31mFAILED\e[39m  /' \
+                 -e$'s/  failed  /  \e[33mFAILED\e[39m  /' \
+                 -e"s/^/$regtest_print_prefix/" \
+                 -e$'s/$/\e[0m/')
+    wait_for_last_process_substitution
 
     if [[ $ret == 0 ]]; then
-        regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
+        [[ $silent ]] || regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
         ((ignored_failures > 0)) && {
             regtest_printn '\e[33;1mWarning: Ignored %s failure%s!\e[0m' \
                            "$ignored_failures" $( ((ignored_failures > 1)) && echo s )
@@ -483,8 +513,9 @@ regtest_print_summary() {
         regtest_printn '=> \e[31mFAILED\e[0m  %s' "$total_time"
     fi
 
-    [[ "$(wc -l "$_regtest_status_file" | gawk '{print $1}')" == \
-       "$(wc -l "$_regtest_found_file" | gawk '{print $1}')" ]] || {
+    local executed
+    executed=$(awk '$2 != "-" { print $2 }' "$_regtest_status_file")
+    [[ "$executed" == "$(cat "$_regtest_found_file")" ]] || {
         regtest_printn "\e[31;1mError: Not all matching tests were run!\e[0m"
         return 11
     }
@@ -550,27 +581,139 @@ _regtest_suite_timeout() {
     fi
 }
 
+# _regtest_check_loglevel <log-level>
+# Check that <log-level> is a valid log level.
+_regtest_check_loglevel() {
+    [[ "$1" =~ ^(error|suite|test)$ ]] || {
+        regtest_printn >&2 "Error: Not a valid log level: %s" "$1"
+        return 1
+    }
+}
+
 ## regtest_start
 # Initialise variables in preparation for running the suite set.
 regtest_start() {
     _regtest_start_time=$(date +%s)
 
+    regtest_suite=-
+
+    _regtest_check_loglevel "$regtest_run_loglevel" || exit 1
+    _regtest_check_loglevel "$regtest_summary_loglevel" || exit 1
+
     # Prevent contamination of test suite environment.
     unset regtest_dir
+}
+
+# _suite_status <file>
+# Prints a status summarising the statuses of all tests in status file <file>: "ok" or
+# "<failed>/<total>".
+_suite_status() {
+    gawk '
+        NR == 1 { suite = $1 }
+        $1 != suite { print "Error: Different suites: " $1 " and " suite > "/dev/stderr"; exit 1 }
+        $3 == "ok"          { next }
+        $3 ~ /\(ignored\)$/ { next }
+                            { failed++ }
+        END { if (failed) print failed "/" NR; else print "ok" }
+    ' "$1"
+}
+
+# _regtest_filter_suite_output <suite-name>
+# Filter test suite output taking into account 'regtest_run_loglevel'.
+_regtest_filter_suite_output() {
+    local name=$1
+    gawk -vlogfile="$regtest_logdir/$regtest_session/$name.suitelog" \
+         -vprefix="${regtest_print_prefix//$'\e'/\\033}" \
+         -vname="$name" \
+         -vprint_suite=$([[ $regtest_run_loglevel =~ ^(suite|test)$ ]] && echo 1 || true) \
+         -vprint_test=$([[ $regtest_run_loglevel == 'test' ]] && echo 1 || true) '
+        NR == 1 {
+            first_line = prefix "\033[32;1;2m[SUITE RUN]\033[0;1m " name "\033[0m"
+            print first_line >>logfile
+            if (print_suite) print first_line
+        }
+        { print >>logfile }
+        print_test {
+            print
+            next
+        }
+        $1 == gensub(/\s*$/, "", 1, prefix) && $2 ~ /\[FAILED\]/ {
+            close(logfile)
+            if (print_suite) getline <logfile
+            while (getline <logfile) print
+            print_suite = print_test = 1
+        }
+    '
+}
+
+# _regtest_append_suite_status <suite> <start-time> <suite-return-code>
+# Append status of suite <suite> to main status file.
+_regtest_record_suite_status() {
+    local name=$1 start_time=$2 r=$3
+    local tmp_status_file=$_regtest_status_file.$name
+
+    time=$(($(date +%s) - start_time))
+    time_mns=$(_regtest_minutes_and_seconds "$time")
+    [[ -s "$tmp_status_file" ]] && suite_status=$(_suite_status "$tmp_status_file")
+
+    case $r in
+    0)
+        if [[ "$suite_status" ]]; then
+            if [[ "$suite_status" == ok ]]; then
+                if [[ $regtest_run_loglevel =~ ^(suite|test)$ ]]; then
+                    regtest_printn '\e[32;1m[SUITE OK]\e[0m \e[1;2m%s\e[0;1m  %s\e[0m' \
+                                   "$name" "$time_mns"
+                fi
+            else
+                regtest_printn '\e[31;1m[SUITE FAILED]\e[0m \e[1;2m%s\e[0;1m  (%s)  %s\e[0m' \
+                               "$name" "$suite_status" "$time_mns"
+            fi
+            printf '%s - %s %s\n' "$name" "$suite_status" "$time" >> "$_regtest_status_file"
+        fi
+        ;;
+    $_regtest_ret_timeout)
+        regtest_printn '\e[31;1m[SUITE TIMED OUT]\e[0m \e[2m%s\e[0m  %s' "$name" "$time_mns"
+        printf '%s - timeout %s\n' "$name" "$time" >> "$_regtest_status_file"
+        ;;
+    '')
+        regtest_printn '\e[31;1m[SUITE KILLED]\e[0m \e[2m%s\e[0m  %s' "$name" "$time_mns"
+        printf '%s - killed %s\n' "$name" "$time" >> "$_regtest_status_file"
+        ;;
+    *)
+        regtest_printn '\e[31;1m[SUITE FAILED UNEXPECTEDLY?!]\e[0m \e[2m%s\e[0m  %s' "$name" \
+                                                                                     "$time_mns"
+        printf '%s - unexpected-failure %s\n' "$name" "$time" >> "$_regtest_status_file"
+        ;;
+    esac
+
+    if [[ -e "$tmp_status_file" ]]; then
+        cat "$tmp_status_file" >> "$_regtest_status_file"
+        rm "$tmp_status_file"
+    fi
 }
 
 ## regtest_run_suite <name> <command...>
 # Run a single test suite <name>, using the command <command...>. <command...> will be killed if
 # it exceeds 'regtest_suite_timeout'.
 regtest_run_suite() {
-    local name=$1
+(
+    local name=$1 time r= suite_status= tmp_status_file
     shift
-    _regtest_kill_after_timeout "$regtest_suite_timeout" "$@" || {
-        [[ $? == $_regtest_ret_timeout ]] &&
-            LC_NUMERIC=C printf '%s[SUITE-TIMEOUT] timeout %.f\n' \
-                   "$name" "$(_regtest_time_to_seconds "$regtest_suite_timeout")" \
-                   >>"$_regtest_status_file"
-    }
+
+    time=$(date +%s)
+    _regtest_init_logdir
+    tmp_status_file=$_regtest_status_file.$name
+
+    regtest_kill_children_on_exit
+    regtest_on_exit '_regtest_record_suite_status "$name" "$time" "$r"'
+
+    {
+        regtest_kill_children_on_exit
+        regtest_suite=$name \
+        _regtest_status_file=$tmp_status_file \
+        _regtest_kill_after_timeout "$regtest_suite_timeout" "$@"
+    } |& _regtest_filter_suite_output "$name" && r=0 || r=${PIPESTATUS[0]}
+)
 }
 
 ## regtest_finish
@@ -582,7 +725,7 @@ regtest_finish() {
     if [[ ! -s "$_regtest_status_file" ]]; then
         return 0
     elif [[ "$(wc -l "$_regtest_found_file" | gawk '{print $1}')" == 1 ]]; then
-        gawk -vr=10 '$2 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file"
+        gawk -vr=10 '$3 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file"
     else
         regtest_print_summary $(($(date +%s) - _regtest_start_time))
     fi
@@ -618,7 +761,7 @@ regtest_run_suites() {
         local timeout
         # A test suite should not take more than ~5 minutes.
         timeout=$(_regtest_suite_timeout "$dir/$suite.sh")
-        regtest_suite_timeout=$timeout regtest_run_suite "$suite" . "$dir/$suite.sh"
+        regtest_suite_timeout=$timeout regtest_run_suite "${suite//\//-}" . "$dir/$suite.sh"
     done
 }
 
@@ -662,10 +805,37 @@ regtest_logdir=${REGTEST_LOGDIR-log}
 # By default, only files from failed runs are kept.
 regtest_keep_tmpfiles=$(if [[ -n "${REGTEST_TMPDIR-}" ]]; then echo 1; fi)
 
-: ${regtest_session=$(date +%Y-%m-%d-%H:%M:%S)}
+_regtest_unique_session() {
+    local r i
+    r=$(date +%Y-%m-%d-%H:%M:%S)
+    if [[ -e "$regtest_logdir/$r" ]]; then
+        r=$r.$(date +%N)
+        [[ -e "$r" ]] && {
+            regtest_printn >&2 "Error: No way this session already exists: '%s'!" "$r"
+            return 1
+        }
+    fi
+    echo "$r"
+}
+
+[[ "${regtest_session-}" ]] || regtest_session=$(_regtest_unique_session)
 
 # Whether to generate reference files during this run.
 regtest_generate=
+
+# The level of detail of information printed while running tests. From least to most verbose:
+#
+#     error:: Print error messages;
+#     suite:: ...and information about test suites;
+#     test::  ...and information about individual test cases (i.e. everything).
+: ${regtest_run_loglevel=test}
+
+# The level of detail of the summary. From least to most verbose:
+#
+#     error:: Print failed test suites and test cases;
+#     suite:: ...and a line for each test suite (whether OK or FAILED);
+#     test::  ...and a line for each test case (whether OK or FAILED).
+: ${regtest_summary_loglevel=test}
 
 # Lines of a regtest command's output (on stderr or stdout) matching this extended regex will be
 # forwarded to standard output (instead of being written only to the log file).

@@ -13,6 +13,9 @@ _regtest_on_exit=()
 _regtest_kill_children_on_exit=()
 
 _regtest_on_exit_handler() {
+    # Don't react to ordinary TERM signals during cleanup. This implies that this cleanup phase
+    # should be non-blocking and fast.
+    trap '' TERM
     if [[ "${_regtest_kill_children_on_exit[$BASHPID]-}" ]]; then
         local pid=$BASHPID pids
         pids=$(ps -o pid= --ppid $pid)
@@ -72,6 +75,23 @@ command_name() {
         done
     fi
     printf '%s\n' "${1-???}"
+}
+
+# wait_for_last_process_substitution
+# Wait for the last process substitution (`>(...)`) to terminate. In the following example, "END",
+# is guaranteed to be printed _after_ "START". This would not be the case without the call to
+# `wait_for_last_process_substitution` in between.
+#
+#     echo START > >(cat); wait_for_last_process_substitution; echo END
+wait_for_last_process_substitution() {
+    if [[ $BASH_VERSION < 4.2 ]]; then
+        sleep .5 # This is the best I can do; just don't use bash 4.1 or lower!
+    elif [[ $BASH_VERSION < 4.4 ]]; then
+        echo | cat >/dev/null # workaround for bash 4.2.37 bug...
+        while kill -0 $! 2>/dev/null; do sleep .01; done
+    else
+        wait $!
+    fi
 }
 
 # regtest_nice_kill [-<signal>] <pid> [<timeout>]
