@@ -1,4 +1,4 @@
-[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m ascii
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello[0m  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-bad-case-fail
@@ -52,11 +52,11 @@
 [34;2m{[regtest]}[0m [1mThis is a partial comparison.[0m
 [34;2m{[regtest]}[0m Full diff: less -R log/YYYY-MM-DD-hh:mm:ss/ascii-hello-color-bad-ref-fail.comparison
 [34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-color-bad-ref-fail[0m  (comparator)  mm:ss
-[34;2m{[regtest]}[0m [31;1m[SUITE FAILED][0m [2mascii[0m  (4/9)  mm:ss
-[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m unicode
+[34;2m{[regtest]}[0m [31;1m[SUITE FAILED][0m [1;2mascii[0;1m  (4/9)  mm:ss[0m
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m unicode[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m unicode-hello
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2municode-hello[0m  mm:ss
-[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [2municode[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [1;2municode[0;1m  mm:ss[0m
 [34;2m{[regtest]}[0m 
 [34;2m{[regtest]}[0m Summary
 [34;2m{[regtest]}[0m -------

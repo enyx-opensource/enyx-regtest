@@ -1,4 +1,4 @@
-[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m ascii
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-bad-case-fail
 [34;2m{[regtest]}[0m Error: Command ascii-hello-bad-case-fail exited with error (code 1)
 [34;2m{[regtest]}[0m [34;1;2m=== Last 20 lines of log ===[0m
@@ -6,4 +6,4 @@
 [34;2m{[regtest]}[0m [34;1;2m============================[0m
 [34;2m{[regtest]}[0m Full log: less -R log/YYYY-MM-DD-hh:mm:ss/ascii-hello-bad-case-fail
 [34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mascii-hello-bad-case-fail[0m  (run)  mm:ss
-[34;2m{[regtest]}[0m [31;1m[SUITE FAILED][0m [2mascii[0m  (1/1)  mm:ss
+[34;2m{[regtest]}[0m [31;1m[SUITE FAILED][0m [1;2mascii[0;1m  (1/1)  mm:ss[0m

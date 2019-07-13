@@ -628,7 +628,7 @@ _regtest_filter_suite_output() {
          -vprint_suite=$([[ $regtest_run_loglevel =~ ^(suite|test)$ ]] && echo 1 || true) \
          -vprint_test=$([[ $regtest_run_loglevel == 'test' ]] && echo 1 || true) '
         NR == 1 {
-            first_line = prefix "\033[32;1;2m[SUITE RUN]\033[0m " name
+            first_line = prefix "\033[32;1;2m[SUITE RUN]\033[0;1m " name "\033[0m"
             print first_line >>logfile
             if (print_suite) print first_line
         }
@@ -661,10 +661,11 @@ _regtest_record_suite_status() {
         if [[ "$suite_status" ]]; then
             if [[ "$suite_status" == ok ]]; then
                 if [[ $regtest_run_loglevel =~ ^(suite|test)$ ]]; then
-                    regtest_printn '\e[32;1m[SUITE OK]\e[0m \e[2m%s\e[0m  %s' "$name" "$time_mns"
+                    regtest_printn '\e[32;1m[SUITE OK]\e[0m \e[1;2m%s\e[0;1m  %s\e[0m' \
+                                   "$name" "$time_mns"
                 fi
             else
-                regtest_printn '\e[31;1m[SUITE FAILED]\e[0m \e[2m%s\e[0m  (%s)  %s' \
+                regtest_printn '\e[31;1m[SUITE FAILED]\e[0m \e[1;2m%s\e[0;1m  (%s)  %s\e[0m' \
                                "$name" "$suite_status" "$time_mns"
             fi
             printf '%s - %s %s\n' "$name" "$suite_status" "$time" >> "$_regtest_status_file"

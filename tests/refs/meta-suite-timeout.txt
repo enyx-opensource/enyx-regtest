@@ -1,4 +1,4 @@
-[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m slowgrep
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m slowgrep[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m slow-hello-1
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mslow-hello-1[0m  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m slow-hello-2
@@ -7,10 +7,10 @@
 [34;2m{[regtest]}[0m Log: log/YYYY-MM-DD-hh:mm:ss/slow-hello-2
 [34;2m{[regtest]}[0m [31;1m[FAILED][0m [2mslow-hello-2[0m  (interrupted)  mm:ss
 [34;2m{[regtest]}[0m [31;1m[SUITE TIMED OUT][0m [2mslowgrep[0m  mm:ss
-[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m unicode
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m unicode[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m unicode-hello
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2municode-hello[0m  mm:ss
-[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [2municode[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [1;2municode[0;1m  mm:ss[0m
 [34;2m{[regtest]}[0m 
 [34;2m{[regtest]}[0m Summary
 [34;2m{[regtest]}[0m -------

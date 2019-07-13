@@ -1,7 +1,7 @@
-[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m ascii
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
 [34;2m{[regtest]}[0m Comparing output and reference (txt)...
 gawk: fatal: cannot open file `reference-md5sums' for reading (No such file or directory)
 [34;2m{[regtest]}[0m Warning: refs/ascii-hello-color.txt checksum unknown. Computing it...
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello-color[0m  mm:ss
-[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [2mascii[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [1;2mascii[0;1m  mm:ss[0m

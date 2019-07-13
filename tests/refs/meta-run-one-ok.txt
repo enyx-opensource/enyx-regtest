@@ -1,4 +1,4 @@
-[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0m ascii
+[34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello[0m  mm:ss
-[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [2mascii[0m  mm:ss
+[34;2m{[regtest]}[0m [32;1m[SUITE OK][0m [1;2mascii[0;1m  mm:ss[0m
