@@ -172,6 +172,11 @@ regtest_expect_exit_status() {
 # not found. Kills the command and exits once the pattern is found. The command's return code will
 # be ignored.
 regtest_expect_grep() {
+    if [[ $BASH_VERSION < 4.3 ]]; then
+        regtest_printn >&2 \
+                'Error: regtest_expect_grep is not compatible with bash versions < 4.3!'
+        return $_regtest_ret_fatal
+    fi
     local pat=${1//\//\\/}
     shift
     if ! (
