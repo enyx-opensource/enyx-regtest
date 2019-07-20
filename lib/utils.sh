@@ -12,13 +12,23 @@ _regtest_ret_timeout=101
 _regtest_on_exit=()
 _regtest_kill_children_on_exit=()
 
+# _regtest_children <pid>
+# Print a space-separated list of the child processes of <pid>.
+_regtest_children() {
+    if [[ -e "/proc/$1/task/$1/children" ]]; then
+        cat "/proc/$1/task/$1/children"
+    else
+        ps -o pid= --ppid "$1" # Much slower!
+    fi
+}
+
 _regtest_on_exit_handler() {
     # Don't react to ordinary TERM signals during cleanup. This implies that this cleanup phase
     # should be non-blocking and fast.
     trap '' TERM
     if [[ "${_regtest_kill_children_on_exit[$BASHPID]-}" ]]; then
         local pid=$BASHPID pids
-        pids=$(ps -o pid= --ppid $pid)
+        pids=$(_regtest_children $pid)
         kill $pids 2>/dev/null || true
         wait $pids 2>/dev/null || true
     fi
