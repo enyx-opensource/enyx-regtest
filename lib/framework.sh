@@ -541,7 +541,6 @@ _regtest_kill_after_timeout() {
         regtest_kill_children_on_exit
         sleep "$timeout" 2</dev/null # (redirection is a bash 4.2 workaround)
         rm "$timeout_canary"
-        # Print log in a detached process to make sure the log will be printed despite `kill -9`.
         regtest_printn >&2 \
             "\e[31;1mError: '%s' took too long (exceeded %s). Killing process!\e[0m" \
             "$*" "$timeout"
