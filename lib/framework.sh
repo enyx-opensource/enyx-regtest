@@ -563,6 +563,14 @@ _regtest_time_to_seconds() {
     gawk </dev/null -vf="$f" -vt="${BASH_REMATCH[1]}" 'BEGIN { print f * t }'
 }
 
+# _regtest_multiply_time <time> <factor>
+# Print the result of multiplying <time> by <factor>.
+_regtest_multiply_time() {
+    local time=$1 factor=$2
+    gawk </dev/null -vt="${time%[smh]}" -ve="${time##*[^smh]}" -vf="$factor" \
+        'BEGIN { printf "%.3f%s\n", t * f, e }'
+}
+
 # _regtest_suite_timeout <suite-file>
 # Determine the timeout to apply to the test suite corresponding to file path <suite-file> by
 # multiplying the base timeout 'regtest_suite_timeout' by the "regtest-timeout-factor" if the test
