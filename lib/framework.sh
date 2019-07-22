@@ -576,15 +576,20 @@ _regtest_multiply_time() {
 # multiplying the base timeout 'regtest_suite_timeout' by the "regtest-timeout-factor" if the test
 # suite specifies one in a comment. Otherwise, just returns 'regtest_suite_timeout'.
 _regtest_suite_timeout() {
-    local suite_file=$1
+    local suite_file=$1 factor
 
     if [[ "$regtest_suite_timeout" == inf ]]; then
         echo inf
     else
-        gawk -vt="$(_regtest_time_to_seconds "$regtest_suite_timeout"))" '
-            $1 == "#" && $2 == "regtest-timeout-factor:" { print $3 * t / 60 "m"; done = 1; exit }
-            END                                          { if (!done) print t / 60 "m" }' \
-            "$suite_file"
+        factor=$(
+            gawk '$1 == "#" && $2 == "regtest-timeout-factor:" { print $3; done = 1; exit }' \
+                 "$suite_file"
+        )
+        if [[ -n "$factor" ]]; then
+            _regtest_multiply_time "$regtest_suite_timeout" "$factor"
+        else
+            printf '%s\n' "$regtest_suite_timeout"
+        fi
     fi
 }
 
