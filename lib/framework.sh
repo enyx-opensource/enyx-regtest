@@ -523,14 +523,24 @@ regtest_print_summary() {
     return $ret
 }
 
-# _regtest_kill_after_timeout <timeout> <command...>
-# Run `<command...>`, and if that takes longer than `sleep <timeout>`, kill the process.
-# Returns `$_regtest_ret_timeout` in case of timeout.
+# _regtest_kill_after_timeout <first-timeout> <second-timeout> <command...>
+# Run `<command...>`, and if that takes longer than `sleep <first-timeout> <second-timeout>`, kill
+# the process, although if <second-timeout> is of the form `*<n>`, it will be replaced with
+# `$((<first-timeout> * <n>))`.
+# Returns '_regtest_ret_timeout' if the command took longer than `sleep <first-timeout>`.
 _regtest_kill_after_timeout() {
 (
-    local timeout=$1
-    shift
-    local killer pid ret timeout_canary
+    local timeout1=$1 timeout2=$2 killer pid ret timeout_canary full_timeout
+    shift 2
+
+    if [[ "$timeout2" == '*'* ]]; then
+        timeout2=$(_regtest_multiply_time "$timeout1" "${timeout2#'*'}")
+    fi
+    if [[ "$timeout2" == 0 ]]; then
+        full_timeout=$timeout1
+    else
+        full_timeout=$timeout1+$timeout2
+    fi
 
     timeout_canary=$(mktemp "$_regtest_tmp/timeout-XXXXX")
     regtest_on_exit 'rm -f "$timeout_canary"'
@@ -539,11 +549,17 @@ _regtest_kill_after_timeout() {
     "$@" & pid=$!
     (
         regtest_kill_children_on_exit
-        sleep "$timeout" 2</dev/null # (redirection is a bash 4.2 workaround)
+        sleep "$timeout1" 2</dev/null # (redirection is a bash 4.2 workaround)
         rm "$timeout_canary"
+        if [[ "$timeout2" != 0 ]]; then
+            regtest_printn >&2 \
+                "\e[31;1mError: '%s' took too long (exceeded %s). Will still wait another %s...\e[0m" \
+                "$*" "$timeout1" "$timeout2"
+            sleep "$timeout2"
+        fi
         regtest_printn >&2 \
             "\e[31;1mError: '%s' took too long (exceeded %s). Killing process!\e[0m" \
-            "$*" "$timeout"
+            "$*" "$full_timeout"
         regtest_nice_kill $pid
     ) >/dev/null </dev/null &
 
@@ -723,7 +739,7 @@ regtest_run_suite() {
         regtest_kill_children_on_exit
         regtest_suite=$name \
         _regtest_status_file=$tmp_status_file \
-        _regtest_kill_after_timeout "$regtest_suite_timeout" "$@"
+        _regtest_kill_after_timeout "$regtest_suite_timeout" "$regtest_suite_timeout2" "$@"
     } |& _regtest_filter_suite_output "$name" && r=0 || r=${PIPESTATUS[0]}
 )
 }
@@ -856,11 +872,31 @@ regtest_generate=
 # Whether to launch test suites in random order. Tests within a test suite are always run in the
 # order they are written in.
 : ${regtest_run_suites_in_random_order=1}
+
 # The base timeout for a test suite (in the format accepted by the `sleep` command). If a test
 # suite file contains a line of the form `# regtest-timeout-factor: <n>`, where `<n>` is a real
 # number, that suite's timeout will be multiplied by `<n>`. If a test suite exceeds said timeout,
-# it will be immediately halted and an error will be generated regarding the timeout.
-regtest_suite_timeout=${REGTEST_SUITE_TIMEOUT-5m}
+# an error will be generated regarding the timeout, and it will be halted immediately, unless
+# 'regtest_suite_timeout2' is not "0".
+regtest_suite_timeout=5m
+
+# If non-zero ("0"), the test suite will be granted extra time to finish (but the suite itself
+# will still fail with a timeout error). More precisely, this can be set to a time (in the format
+# accepted by the `sleep` command), in which case that amount of extra time will be granted.
+# Alternatively, a multiplicative factor can be given in the format `*<factor>`, in which case
+# `<factor> * $regtest_suite_timeout` extra time will be granted.
+regtest_suite_timeout2=0
+
+case ${REGTEST_SUITE_TIMEOUT-} in
+    '')  ;;
+    +*)  regtest_suite_timeout2=${REGTEST_SUITE_TIMEOUT#+}
+         ;;
+    *+*) regtest_suite_timeout=${REGTEST_SUITE_TIMEOUT%+*}
+         regtest_suite_timeout2=${REGTEST_SUITE_TIMEOUT#*+}
+         ;;
+    *)   regtest_suite_timeout=$REGTEST_SUITE_TIMEOUT
+         ;;
+esac
 
 # Bash regex which test names _must_ match (useful for keeping things nice and consistent). Must
 # contain a parenthesised part indicating the actual name part (to match against 'regtest_globs').

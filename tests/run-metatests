@@ -104,11 +104,19 @@ metarun_regtest_lines_only() {
 
 # Note: We run the "unicode" tests after the "slow" tests to check that even after the "slow" test
 # suite times out, the "unicode" test suite runs.
-regtest meta-suite-timeout \
-    regtest_env REGTEST_SUITE_TIMEOUT=.5s REGTEST_EXAMPLE_SUITE_FILES='slowgrep ascii unicode' \
-    regtest_expect_exit_status 10 \
-    metarun_regtest_lines_only {out.txt} \
-    ./run-tests --deterministic 'slow-*' 'unicode-*'
+timeout_test() {
+    regtest "$1" \
+        regtest_env REGTEST_SUITE_TIMEOUT="$2" \
+                    REGTEST_EXAMPLE_SUITE_FILES='slowgrep ascii unicode' \
+        regtest_expect_exit_status 10 \
+        metarun_regtest_lines_only {out.txt} \
+        ./run-tests --deterministic 'slow-*' 'unicode-*'
+}
+
+timeout_test meta-suite-timeout                      .2s
+timeout_test meta-suite-timeout2-absolute-killed     .05s+.1s
+timeout_test meta-suite-timeout2-relative-killed     .05s+*2
+timeout_test meta-suite-timeout2-relative-not-killed .5s+*2.5
 
 kill_after() {
 (

@@ -99,7 +99,7 @@ test: simple-test metatest
 
 # For centos 7.
 metatest-no-timeout-test: prepare-tests
-	$(metatest) --exclude meta-suite-timeout --exclude meta-suite-killed
+	$(metatest) --exclude 'meta-suite-timeout*' --exclude meta-suite-killed
 test-no-timeout-test: simple-test metatest-no-timeout-test
 
 cicmd := ./tests/ci $(build)/ci
