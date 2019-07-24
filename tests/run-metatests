@@ -113,10 +113,10 @@ timeout_test() {
         ./run-tests --deterministic 'slow-*' 'unicode-*'
 }
 
-timeout_test meta-suite-timeout                      .2s
-timeout_test meta-suite-timeout2-absolute-killed     .05s+.1s
-timeout_test meta-suite-timeout2-relative-killed     .05s+*2
-timeout_test meta-suite-timeout2-relative-not-killed .5s+*2.5
+timeout_test meta-suite-timeout                      .1s
+timeout_test meta-suite-timeout2-absolute-killed     .1s+.2s
+timeout_test meta-suite-timeout2-relative-killed     .1s+*2
+timeout_test meta-suite-timeout2-relative-not-killed .4s+*2.5
 
 kill_after() {
 (

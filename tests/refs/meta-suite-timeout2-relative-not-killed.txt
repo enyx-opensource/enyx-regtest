@@ -2,7 +2,7 @@
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m slow-hello-1
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mslow-hello-1[0m  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m slow-hello-2
-[34;2m{[regtest]}[0m [31;1mError: '. tests/slowgrep.sh' took too long (exceeded .5s). Will still wait another 1.250s...[0m
+[34;2m{[regtest]}[0m [31;1mError: '. tests/slowgrep.sh' took too long (exceeded .4s). Will still wait another 1.000s...[0m
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mslow-hello-2[0m  mm:ss
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m slow-hello-3
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mslow-hello-3[0m  mm:ss
