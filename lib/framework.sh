@@ -88,16 +88,33 @@ regtest_ref_compare() {
     }
 }
 
-# _regtest_matches_a_glob <name>
-_regtest_matches_a_glob() {
-    local name=$1
+# _regtest_check_test_name <name>
+# Returns:
+#
+# - 2 if the name is not valid; otherwise
+# - 0 if it matches matches a glob in 'regtest_globs', and does not match a glob in
+#   'regtest_exclude_globs'; otherwise
+# - 1 (valid but does not match).
+_regtest_check_test_name() {
+    local name=$1 name_only glob
 
-    local glob
+    [[ "$name" < 0 ]] && {
+        regtest_printn >&2 'Error: Bad test name: %s. Cannot start with punctuation.' "$name"
+        return 2
+    }
+    [[ "$name" =~ $regtest_name_regex ]] || {
+        regtest_printn >&2 'Error: Bad test name: %s. Was expected to match %s' \
+                           "$name" "$regtest_name_regex"
+        return 2
+    }
+
+    name_only=${BASH_REMATCH[1]}
+
     for glob in ${regtest_exclude_globs+"${regtest_exclude_globs[@]}"}; do
-        [[ "$name" == $glob ]] && return 1
+        [[ "$name_only" == $glob || "$name" == "$glob" ]] && return 1
     done
     for glob in "${regtest_globs[@]}"; do
-        [[ "$name" == $glob ]] && return 0
+        [[ "$name_only" == $glob || "$name" == "$glob" ]] && return 0
     done
     return 1
 }
@@ -178,25 +195,16 @@ regtest() {
         shift
     done
 
-    [[ "$name" < 0 ]] && {
-        regtest_printn >&2 'Error: Bad test name: %s. Cannot start with punctuation.' "$name"
-        return 1
-    }
-    [[ "$name" =~ $regtest_name_regex ]] || {
-        regtest_printn >&2 'Error: Bad test name: %s. Was expected to match %s' \
-                           "$name" "$regtest_name_regex"
-        return 1
-    }
-    local name_only=${BASH_REMATCH[1]}
-
     # Can be used to reference outputs from a previous test. E.g.
     #     listing={ref}/$regtest_prev_test.listing.xml
     regtest_prev_test=$name
 
-    if ! _regtest_matches_a_glob "$name_only"; then
-        # Skipping test "$name"
-        return 0
-    fi
+    _regtest_check_test_name "$name" ||
+    case $? in
+    1) return 0;; # Skipping test "$name"
+    *) return 1;;
+    esac
+
     printf '%s\n' "$name" >> "$_regtest_found_file"
 
     local dir=$regtest_inputdir${regtest_dir+/$regtest_dir}
