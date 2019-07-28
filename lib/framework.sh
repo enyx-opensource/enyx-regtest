@@ -760,7 +760,7 @@ regtest_finish() {
 
     if [[ ! -s "$_regtest_status_file" ]]; then
         return 0
-    elif [[ "$(wc -l "$_regtest_found_file" | gawk '{print $1}')" == 1 ]]; then
+    elif [[ "$(wc -l <"$_regtest_found_file")" == 1 ]]; then
         gawk -vr=10 '$3 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file"
     else
         regtest_print_summary $(($(date +%s) - _regtest_start_time))
