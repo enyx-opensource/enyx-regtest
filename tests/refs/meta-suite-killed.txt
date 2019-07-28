@@ -1,3 +1,4 @@
+[34;2m{[regtest]}[0m Using log/YYYY-MM-DD-hh:mm:ss as log directory.
 [34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello
 [34;2m{[regtest]}[0m [32;1m[OK][0m [2mascii-hello[0m  mm:ss

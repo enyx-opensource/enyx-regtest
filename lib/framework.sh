@@ -303,6 +303,9 @@ _regtest_report_run_error() {
 # Initialise the log directory for this session.
 _regtest_init_logdir() {
     [[ -d "$regtest_logdir/$regtest_session" ]] || {
+        if [[ "$regtest_run_loglevel" != error ]]; then
+            regtest_printn 'Using %s as log directory.' "$regtest_logdir/$regtest_session"
+        fi
         mkdir -p "$regtest_logdir/$regtest_session"
         [[ -L "$regtest_logdir/last" || ! -e "$regtest_logdir/last" ]] || {
             regtest_printn >&2 "Error: %s exists and is not a symbolic link." "$regtest_logdir/last"
