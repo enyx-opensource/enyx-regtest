@@ -302,12 +302,14 @@ _regtest_report_run_error() {
 # _regtest_init_logdir
 # Initialise the log directory for this session.
 _regtest_init_logdir() {
-    mkdir -p "$regtest_logdir/$regtest_session"
-    [[ -L "$regtest_logdir/last" || ! -e "$regtest_logdir/last" ]] || {
-        regtest_printn >&2 "Error: %s exists and is not a symbolic link." "$regtest_logdir/last"
-        return 1
+    [[ -d "$regtest_logdir/$regtest_session" ]] || {
+        mkdir -p "$regtest_logdir/$regtest_session"
+        [[ -L "$regtest_logdir/last" || ! -e "$regtest_logdir/last" ]] || {
+            regtest_printn >&2 "Error: %s exists and is not a symbolic link." "$regtest_logdir/last"
+            return 1
+        }
+        ln -nsf "$regtest_session" "$regtest_logdir/last"
     }
-    ln -nsf "$regtest_session" "$regtest_logdir/last"
 }
 
 # _regtest_forward_command_output_full_pattern
