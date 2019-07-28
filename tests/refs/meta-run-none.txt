@@ -1,0 +1,2 @@
+[34;2m{[regtest]}[0m No matching tests found.
+[34;2m{[regtest]}[0m [31;1mError: Unmatched glob: nosuchtest [0m

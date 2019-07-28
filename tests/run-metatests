@@ -34,14 +34,6 @@ metasuite() {
 
 regtest_dir=example
 
-regtest meta-run-none \
-    regtest_launch_in_sequence \
-    -- regtest_expect_exit_status 1 \
-       regtest_redirect_stdout_to {tmp.txt} \
-       regtest_from_dir example \
-       ./run-tests nosuchtest \
-    -- test -f {tmp.txt} -a ! -s {tmp.txt} # (i.e. output is empty)
-
 # Replace date and time in the output with placeholders.
 replace_date_and_time() {
     local ms=[0-6][0-9]:[0-6][0-9]
@@ -57,6 +49,10 @@ metarun() {
 }
 
 run=(metarun {out.txt} ./run-tests --deterministic)
+
+regtest meta-run-none \
+    regtest_expect_exit_status 12 \
+    "${run[@]}" nosuchtest
 
 regtest meta-run-all \
     regtest_expect_exit_status 10 \
@@ -77,6 +73,14 @@ regtest meta-list-all \
 
 regtest meta-list-glob \
     "${run[@]}" --list 'ascii-hello-color*' 'unicode*'
+
+regtest meta-list-glob-unmatched \
+    regtest_expect_exit_status 12 \
+    "${run[@]}" --list 'nosuchtest' 'ascii-hello' 'nosuchtest*' 'nosuchtest'
+
+regtest meta-run-glob-unmatched \
+    regtest_expect_exit_status 12 \
+    "${run[@]}" 'nosuchtest' 'ascii-hello' 'nosuchtest*' 'nosuchtest'
 
 with_refdir() {
     regtest_env REGTEST_REFDIR="$(readlink -f "$1")" "${@:2}"

@@ -19,3 +19,4 @@
 [34;2m{[regtest]}[0m slow-hello-1    [32mOK[39m      -              mm:ss[0m
 [34;2m{[regtest]}[0m slow-hello-2    [31mFAILED[39m  (interrupted)  mm:ss[0m
 [34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss
+[34;2m{[regtest]}[0m [31;1mError: Unmatched glob: unicode-* [0m

@@ -15,6 +15,10 @@ command -v column &>/dev/null || {
 
 # List of found tests (newline-delimited).
 _regtest_found_file=$_regtest_tmp/found
+
+# List of unmatched globs (newline-delimited).
+_regtest_unmatched_glob_file=$_regtest_tmp/unmatched-globs
+
 # Test statuses (newline-delimited).
 # Record format: `<suite> <test> <status> <failure-detail> <time>`.
 _regtest_status_file=$_regtest_tmp/statuses
@@ -113,8 +117,13 @@ _regtest_check_test_name() {
     for glob in ${regtest_exclude_globs+"${regtest_exclude_globs[@]}"}; do
         [[ "$name_only" == $glob || "$name" == "$glob" ]] && return 1
     done
+    [[ -e "$_regtest_unmatched_glob_file" ]] ||
+        printf '%s\n' "${regtest_globs[@]}" >"$_regtest_unmatched_glob_file"
     for glob in "${regtest_globs[@]}"; do
-        [[ "$name_only" == $glob || "$name" == "$glob" ]] && return 0
+        [[ "$name_only" == $glob || "$name" == "$glob" ]] && {
+            regtest_remove_line_from_file "$_regtest_unmatched_glob_file" "$glob"
+            return 0
+        }
     done
     return 1
 }
@@ -753,18 +762,31 @@ regtest_run_suite() {
 }
 
 ## regtest_finish
-# Finalise all tests by printing a summary and returning an error code (see
-# 'regtest_print_summary' for details on the error code).
+# Finalise all tests by printing a summary and returning an error code. If there are still
+# unmatched globs, returns error code 12. Otherwise, returns 'regtest_print_summary''s error code.
 regtest_finish() {
-    [[ ! -s "$_regtest_found_file" ]] && return 1
+    local ret=0
 
-    if [[ ! -s "$_regtest_status_file" ]]; then
-        return 0
-    elif [[ "$(wc -l <"$_regtest_found_file")" == 1 ]]; then
-        gawk -vr=10 '$3 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file"
-    else
-        regtest_print_summary $(($(date +%s) - _regtest_start_time))
+    if [[ ! -s "$_regtest_found_file" ]]; then
+        regtest_printn >&2 'No matching tests found.'
+        ret=12
+    elif [[ -s "$_regtest_status_file" ]]; then
+        if [[ "$(wc -l <"$_regtest_found_file")" == 1 ]]; then
+            # Don't bother printing a summary if only one test was run.
+            gawk -vr=10 '$3 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file" || ret=$?
+        else
+            regtest_print_summary $(($(date +%s) - _regtest_start_time)) || ret=$?
+        fi
     fi
+
+    if [[ -s "$_regtest_unmatched_glob_file" ]]; then
+        regtest_printn "\e[31;1mError: Unmatched glob%s: %s\e[0m" \
+                "$([[ $(wc -l <"$_regtest_unmatched_glob_file") != 1 ]] && echo s)" \
+                "$(tr '\n' ' ' <"$_regtest_unmatched_glob_file")"
+        ret=12
+    fi
+
+    return $ret
 }
 
 ## regtest_run_suites <dir> <suites...>
