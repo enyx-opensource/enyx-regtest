@@ -75,6 +75,17 @@ command -v gawk &>/dev/null || {
     exit 1
 }
 
+# regtest_remove_line_from_file <file> <line>
+# Remove lines with exact text <line> (excluding newline) from <file>, inplace.
+# Note: Stores a copy of the file in memory.
+regtest_remove_line_from_file() {
+    local file=$1 line=$2
+    gawk -vline="$line" '
+        { if ($0 != line) out = out $0 "\n"; else changed = 1 }
+        END { if (changed) printf "%s", out >FILENAME }
+    ' "$file"
+}
+
 # command_name <command...>
 # Returns a meaningful name for the command provided in the parameter list.
 command_name() {
