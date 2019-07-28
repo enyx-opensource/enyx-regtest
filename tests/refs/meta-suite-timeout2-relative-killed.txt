@@ -22,3 +22,4 @@
 [34;2m{[regtest]}[0m [1mSUITE unicode   [32mOK[39m      -              mm:ss[0m
 [34;2m{[regtest]}[0m unicode-hello   [32mOK[39m      -              mm:ss[0m
 [34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss
+[34;2m{[regtest]}[0m Recorded 1 failing test case: slow-hello-2

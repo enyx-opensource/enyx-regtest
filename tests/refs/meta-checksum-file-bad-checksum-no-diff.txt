@@ -21,3 +21,4 @@
 [34;2m{[regtest]}[0m [1mSUITE misc         [31mFAILED[39m  (1/1)   mm:ss[0m
 [34;2m{[regtest]}[0m misc-dir-output    [31mFAILED[39m  (diff)  mm:ss[0m
 [34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss
+[34;2m{[regtest]}[0m Recorded 2 failing test cases: ascii-hello-color misc-dir-output

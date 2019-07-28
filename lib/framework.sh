@@ -477,7 +477,7 @@ regtest_impl() {
 # - 10 otherwise (i.e. all tests were run but some failed and were not ignored).
 regtest_print_summary() {
     local total_time=$(_regtest_minutes_and_seconds "$1")
-    local ret=0 ignored_failures=0 all_ok silent
+    local ret=0 failures=() ignored_failures=() all_ok silent
 
     all_ok=$(awk '$3 != "ok" { exit 1 }' "$_regtest_status_file" && echo 1 || true)
     silent=$([[ $regtest_summary_loglevel == error && $all_ok ]] && echo 1 || true)
@@ -508,9 +508,10 @@ regtest_print_summary() {
             else
                 if [[ "$status" != *'(ignored)' ]]; then
                     ret=10
+                    failures+=("$testname")
                     printf "%s FAILED (%s) %s\n" "$testname" "$status" "$time"
                 else
-                    ((ignored_failures++))
+                    ignored_failures+=("$testname")
                     printf "%s failed (%s) %s\n" "$testname" "$status" "$time"
                 fi
             fi
@@ -525,15 +526,24 @@ regtest_print_summary() {
                  -e$'s/$/\e[0m/')
     wait_for_last_process_substitution
 
-    if [[ $ret == 0 ]]; then
-        [[ $silent ]] || regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
-        ((ignored_failures > 0)) && {
-            regtest_printn '\e[33;1mWarning: Ignored %s failure%s!\e[0m' \
-                           "$ignored_failures" $( ((ignored_failures > 1)) && echo s )
-        }
-    else
+    if [[ $ret != 0 ]]; then
         regtest_printn '=> \e[31mFAILED\e[0m  %s' "$total_time"
+    elif [[ ! $silent ]]; then
+        regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
     fi
+
+    [[ ${#ignored_failures[@]} != 0 ]] && {
+        regtest_printn '\e[33;1mWarning: Ignored %s failing test case%s:\e[0m %s' \
+                       "${#ignored_failures[@]}" \
+                       "$([[ ${#ignored_failures[@]} != 1 ]] && echo s)" \
+                       "${ignored_failures[*]}"
+    }
+    [[ ${#failures[@]} != 0 ]] && {
+        regtest_printn 'Recorded %s failing test case%s: %s' \
+                       "${#failures[@]}" \
+                       "$([[ ${#failures[@]} != 1 ]] && echo s)" \
+                       "${failures[*]}"
+    }
 
     local executed
     executed=$(awk '$2 != "-" { print $2 }' "$_regtest_status_file")

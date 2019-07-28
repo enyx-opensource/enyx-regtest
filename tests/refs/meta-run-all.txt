@@ -74,3 +74,5 @@
 [34;2m{[regtest]}[0m [1mSUITE unicode                    [32mOK[39m      -               mm:ss[0m
 [34;2m{[regtest]}[0m unicode-hello                    [32mOK[39m      -               mm:ss[0m
 [34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss
+[34;2m{[regtest]}[0m [33;1mWarning: Ignored 2 failing test cases:[0m ascii-hello-bad-case-warn ascii-hello-bad-case-multi-warn
+[34;2m{[regtest]}[0m Recorded 4 failing test cases: ascii-hello-bad-case-fail ascii-hello-bad-case-warn-fail ascii-hello-color-no-ref-fail ascii-hello-color-bad-ref-fail
