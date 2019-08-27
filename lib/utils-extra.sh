@@ -167,33 +167,58 @@ regtest_expect_exit_status() {
     return 0
 }
 
-## regtest_expect_grep <pattern> <command...>
-# Returns 0 if the awk regex <pattern> is found in <command...>'s stdout or stderr, and 1 if it is
-# not found. Kills the command and exits once the pattern is found. The command's return code will
-# be ignored.
+## regtest_expect_grep [--no-kill[=<error-status>]] <pattern> <command...>
+# If the awk regex <pattern> is _not_ found in <command...>'s stdout or stderr:
+#
+# - If `--no-kill` was _not_ specified, returns 1.
+# - If `--no-kill[=<error-status>]` was specified, returns <error-status>. The default
+#   <error-status> is 200.
+#
+# If the pattern is found:
+#
+# - If `--no-kill` was _not_ specified, kills the <command...> and returns 0.
+# - If `--no-kill[=<...>]` was specified, waits for the <command...> and returns its exit status.
 regtest_expect_grep() {
     if [[ $BASH_VERSION < 4.3 ]]; then
         regtest_printn >&2 \
                 'Error: regtest_expect_grep is not compatible with bash versions < 4.3!'
         return $_regtest_ret_fatal
     fi
-    local pat=${1//\//\\/}
+    local pat no_kill= r
+    case $1 in
+    --no-kill)   no_kill=200; shift;;
+    --no-kill=*) no_kill=${1#--no-kill=}; shift;;
+    -*)          regtest_printn >&2 'Error: regtest_expect_grep does not recognize argument %s!' \
+                                    "$1"
+                 return $_regtest_ret_fatal;;
+    esac
+    pat=${1//\//\\/}
     shift
-    if ! (
+    regtest_kill_children_on_exit
+    (
         regtest_kill_children_on_exit
         exec 3>&2
-        gawk "
-            /$pat/"' { print $0 " \033[32m--> OK!\033[0m"; exit 0 }
+        gawk -v no_kill="$no_kill" '
+            !found && '"/$pat/"' {
+                print $0 " \033[32m--> OK!\033[0m"
+                if (no_kill)
+                    found = 1
+                else
+                    exit 0
+            }
             { print }
-            ENDFILE { exit 1 }' \
+            ENDFILE { exit (found ? 0 : (no_kill ? no_kill : 1)) }' \
             <(
                 true & # (clear $!)
                 regtest_on_exit 'regtest_nice_kill $! >&3'
-                "$@" 2>&1 & wait
-            )
-    ); then
-        regtest_printn "Error: Could not find expected pattern %s in standard output/error." \
-                       "$pat"
-        return 1
-    fi
+                "$@" 2>&1 & wait $!
+            ) || {
+                r=$?
+                regtest_printn >&2 \
+                    "Error: Could not find expected pattern %s in standard output/error." "$pat"
+                return $r
+            }
+        # If --no-kill, forward the tested command's error code.
+        [[ ! "$no_kill" ]] || wait $!
+    )
 }
