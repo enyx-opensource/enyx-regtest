@@ -222,3 +222,15 @@ regtest_expect_grep() {
         [[ ! "$no_kill" ]] || wait $!
     )
 }
+
+## regtest_expect_grep_and_exit_status <pattern> <n> <command...>
+# Returns 0 iff the awk regex <pattern> is found in <command...>'s stdout or stderr, _and_ its
+# exit status is <n>.
+regtest_expect_grep_and_exit_status() {
+    local pat=$1 n=$2 not_found_status
+    shift 2
+    not_found_status=$((n == 200 ? 201 : 200))
+    regtest_expect_grep --no-kill=$not_found_status "$pat" \
+    regtest_expect_exit_status "$n" \
+    "$@"
+}
