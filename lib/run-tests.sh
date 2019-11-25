@@ -96,8 +96,7 @@ if [[ $list || $print ]]; then
 
     if [[ $list ]]; then
         regtest_impl() {
-            [[ "$name" =~ $regtest_name_regex ]]
-            printf '%s\n' "${BASH_REMATCH[1]}"
+            printf '%s\n' "$name"
         }
     elif [[ $print ]]; then
         regtest_impl() {
