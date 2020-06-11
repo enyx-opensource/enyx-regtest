@@ -868,7 +868,7 @@ regtest_refdir=${REGTEST_REFDIR-refs}
 # `$regtest_outdir/<test-name>.<test-version>.<extension>`.
 regtest_outdir=${REGTEST_OUTDIR-out}
 # Directory to which to write temporary output files (i.e. which are not to be compared to
-# reference files). The pattern `{ref.<extension>}` in regtest commands will be expanded to
+# reference files). The pattern `{tmp.<extension>}` in regtest commands will be expanded to
 # `$regtest_tmpdir/<test-name>.<test-version>.<extension>`.
 regtest_tmpdir=${REGTEST_TMPDIR-$regtest_outdir/tmp}
 # Directory to which to write log files (i.e. standard output and error of regtest commands).
