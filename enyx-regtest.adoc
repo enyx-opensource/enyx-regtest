@@ -47,25 +47,51 @@ REGTEST_INPUTDIR::
     `$REGTEST_INPUTDIR$regtest_dir` where 'regtest_dir' is an optional
     suite-local variable.
     Default: `./inputs`.
+
 REGTEST_OUTDIR::
     Output directory, where `{out.<ext>}` files are placed.
     Default: `./out`.
+
 REGTEST_TMPDIR::
     Temporary directory, where `{tmp.<ext>}` files are placed.
     Default: `$REGTEST_OUTDIR/tmp` (`./out/tmp`)
+
 REGTEST_REFDIR::
     Directory relative to which reference files will be placed and
     retrieved (`{ref}`).
     Default: `./refs`.
+
 REGTEST_LOGDIR::
     Directory in which logs will be placed.
     Default: `./log`.
+
 REGTEST_SUITE_TIMEOUT::
-    Maximum amount of time a test suite can take. If a suite exceeds this
-    timeout, it will be killed and the next one, if any, will begin. Can be
-    adjusted per-suite using 'regtest-timeout-factor'. See
-    'regtest_run_suites' for details.
-    Default: `5m` (5 minutes)
++
+--
+Maximum amount of time a test suite can take. If a suite exceeds this
+timeout, it will be killed and the next one, if any, will begin. Can be
+adjusted per-suite using 'regtest-timeout-factor'. See
+'regtest_run_suites' for details.
+If set to a string of the form `<t1>+<t2>`, then the suite timeout will
+be divided into two phases:
+
+- The first phase will wait for <t1> amount of time and will cause the
+  suite to be assigned error status "timeout" if exceeded.
+- The second phase will wait for <t2> amount of time and will cause the
+  suite to exit immediately if exceeded. <t2> may be provided in the
+  format `*<f>` (literal `*`) where <f> is a (real) factor by which to
+  multiply the first timeout.
+
+Examples:
+
+- `1m`: Report error and kill the suite after 1 minute.
+- `1m+30`: Report error after 1 minute, and kill the if still running after
+  an extra 30 seconds (i.e. a total of 1 minute and 30 seconds).
+- `1m+*.5`: Same as `1m+30` if 'regtest-timeout-factor' is not set for the
+  suite
+
+Default: `5m` (5 minutes)
+--
 
 Writing Tests
 -------------
