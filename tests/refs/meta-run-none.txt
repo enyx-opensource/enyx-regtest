@@ -1,0 +1,3 @@
+[34;2m{[regtest]}[0m Using log/YYYY-MM-DD-hh:mm:ss as log directory.
+[34;2m{[regtest]}[0m No matching tests found.
+[34;2m{[regtest]}[0m [31;1mError: Unmatched glob: nosuchtest [0m

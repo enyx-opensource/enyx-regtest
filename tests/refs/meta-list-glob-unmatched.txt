@@ -1,0 +1,2 @@
+ascii-hello
+[34;2m{[regtest]}[0m [31;1mError: Unmatched globs: nosuchtest nosuchtest* nosuchtest [0m

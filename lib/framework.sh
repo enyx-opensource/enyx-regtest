@@ -15,6 +15,10 @@ command -v column &>/dev/null || {
 
 # List of found tests (newline-delimited).
 _regtest_found_file=$_regtest_tmp/found
+
+# List of unmatched globs (newline-delimited).
+_regtest_unmatched_glob_file=$_regtest_tmp/unmatched-globs
+
 # Test statuses (newline-delimited).
 # Record format: `<suite> <test> <status> <failure-detail> <time>`.
 _regtest_status_file=$_regtest_tmp/statuses
@@ -88,16 +92,38 @@ regtest_ref_compare() {
     }
 }
 
-# _regtest_matches_a_glob <name>
-_regtest_matches_a_glob() {
-    local name=$1
+# _regtest_check_test_name <name>
+# Returns:
+#
+# - 2 if the name is not valid; otherwise
+# - 0 if it matches matches a glob in 'regtest_globs', and does not match a glob in
+#   'regtest_exclude_globs'; otherwise
+# - 1 (valid but does not match).
+_regtest_check_test_name() {
+    local name=$1 name_only glob
 
-    local glob
+    [[ "$name" < 0 ]] && {
+        regtest_printn >&2 'Error: Bad test name: %s. Cannot start with punctuation.' "$name"
+        return 2
+    }
+    [[ "$name" =~ $regtest_name_regex ]] || {
+        regtest_printn >&2 'Error: Bad test name: %s. Was expected to match %s' \
+                           "$name" "$regtest_name_regex"
+        return 2
+    }
+
+    name_only=${BASH_REMATCH[1]}
+
     for glob in ${regtest_exclude_globs+"${regtest_exclude_globs[@]}"}; do
-        [[ "$name" == $glob ]] && return 1
+        [[ "$name_only" == $glob || "$name" == "$glob" ]] && return 1
     done
+    [[ -e "$_regtest_unmatched_glob_file" ]] ||
+        printf '%s\n' "${regtest_globs[@]}" >"$_regtest_unmatched_glob_file"
     for glob in "${regtest_globs[@]}"; do
-        [[ "$name" == $glob ]] && return 0
+        [[ "$name_only" == $glob || "$name" == "$glob" ]] && {
+            regtest_remove_line_from_file "$_regtest_unmatched_glob_file" "$glob"
+            return 0
+        }
     done
     return 1
 }
@@ -178,25 +204,16 @@ regtest() {
         shift
     done
 
-    [[ "$name" < 0 ]] && {
-        regtest_printn >&2 'Error: Bad test name: %s. Cannot start with punctuation.' "$name"
-        return 1
-    }
-    [[ "$name" =~ $regtest_name_regex ]] || {
-        regtest_printn >&2 'Error: Bad test name: %s. Was expected to match %s' \
-                           "$name" "$regtest_name_regex"
-        return 1
-    }
-    local name_only=${BASH_REMATCH[1]}
-
     # Can be used to reference outputs from a previous test. E.g.
     #     listing={ref}/$regtest_prev_test.listing.xml
     regtest_prev_test=$name
 
-    if ! _regtest_matches_a_glob "$name_only"; then
-        # Skipping test "$name"
-        return 0
-    fi
+    _regtest_check_test_name "$name" ||
+    case $? in
+    1) return 0;; # Skipping test "$name"
+    *) return 1;;
+    esac
+
     printf '%s\n' "$name" >> "$_regtest_found_file"
 
     local dir=$regtest_inputdir${regtest_dir+/$regtest_dir}
@@ -285,12 +302,17 @@ _regtest_report_run_error() {
 # _regtest_init_logdir
 # Initialise the log directory for this session.
 _regtest_init_logdir() {
-    mkdir -p "$regtest_logdir/$regtest_session"
-    [[ -L "$regtest_logdir/last" || ! -e "$regtest_logdir/last" ]] || {
-        regtest_printn >&2 "Error: %s exists and is not a symbolic link." "$regtest_logdir/last"
-        return 1
+    [[ -d "$regtest_logdir/$regtest_session" ]] || {
+        if [[ "$regtest_run_loglevel" != error ]]; then
+            regtest_printn 'Using %s as log directory.' "$regtest_logdir/$regtest_session"
+        fi
+        mkdir -p "$regtest_logdir/$regtest_session"
+        [[ -L "$regtest_logdir/last" || ! -e "$regtest_logdir/last" ]] || {
+            regtest_printn >&2 "Error: %s exists and is not a symbolic link." "$regtest_logdir/last"
+            return 1
+        }
+        ln -nsf "$regtest_session" "$regtest_logdir/last"
     }
-    ln -nsf "$regtest_session" "$regtest_logdir/last"
 }
 
 # _regtest_forward_command_output_full_pattern
@@ -455,7 +477,7 @@ regtest_impl() {
 # - 10 otherwise (i.e. all tests were run but some failed and were not ignored).
 regtest_print_summary() {
     local total_time=$(_regtest_minutes_and_seconds "$1")
-    local ret=0 ignored_failures=0 all_ok silent
+    local ret=0 failures=() ignored_failures=() all_ok silent
 
     all_ok=$(awk '$3 != "ok" { exit 1 }' "$_regtest_status_file" && echo 1 || true)
     silent=$([[ $regtest_summary_loglevel == error && $all_ok ]] && echo 1 || true)
@@ -486,9 +508,10 @@ regtest_print_summary() {
             else
                 if [[ "$status" != *'(ignored)' ]]; then
                     ret=10
+                    failures+=("$testname")
                     printf "%s FAILED (%s) %s\n" "$testname" "$status" "$time"
                 else
-                    ((ignored_failures++))
+                    ignored_failures+=("$testname")
                     printf "%s failed (%s) %s\n" "$testname" "$status" "$time"
                 fi
             fi
@@ -503,15 +526,24 @@ regtest_print_summary() {
                  -e$'s/$/\e[0m/')
     wait_for_last_process_substitution
 
-    if [[ $ret == 0 ]]; then
-        [[ $silent ]] || regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
-        ((ignored_failures > 0)) && {
-            regtest_printn '\e[33;1mWarning: Ignored %s failure%s!\e[0m' \
-                           "$ignored_failures" $( ((ignored_failures > 1)) && echo s )
-        }
-    else
+    if [[ $ret != 0 ]]; then
         regtest_printn '=> \e[31mFAILED\e[0m  %s' "$total_time"
+    elif [[ ! $silent ]]; then
+        regtest_printn '=> \e[32mOK\e[0m  %s' "$total_time"
     fi
+
+    [[ ${#ignored_failures[@]} != 0 ]] && {
+        regtest_printn '\e[33;1mWarning: Ignored %s failing test case%s:\e[0m %s' \
+                       "${#ignored_failures[@]}" \
+                       "$([[ ${#ignored_failures[@]} != 1 ]] && echo s)" \
+                       "${ignored_failures[*]}"
+    }
+    [[ ${#failures[@]} != 0 ]] && {
+        regtest_printn 'Recorded %s failing test case%s: %s' \
+                       "${#failures[@]}" \
+                       "$([[ ${#failures[@]} != 1 ]] && echo s)" \
+                       "${failures[*]}"
+    }
 
     local executed
     executed=$(awk '$2 != "-" { print $2 }' "$_regtest_status_file")
@@ -745,18 +777,31 @@ regtest_run_suite() {
 }
 
 ## regtest_finish
-# Finalise all tests by printing a summary and returning an error code (see
-# 'regtest_print_summary' for details on the error code).
+# Finalise all tests by printing a summary and returning an error code. If there are still
+# unmatched globs, returns error code 12. Otherwise, returns 'regtest_print_summary''s error code.
 regtest_finish() {
-    [[ ! -s "$_regtest_found_file" ]] && return 1
+    local ret=0
 
-    if [[ ! -s "$_regtest_status_file" ]]; then
-        return 0
-    elif [[ "$(wc -l "$_regtest_found_file" | gawk '{print $1}')" == 1 ]]; then
-        gawk -vr=10 '$3 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file"
-    else
-        regtest_print_summary $(($(date +%s) - _regtest_start_time))
+    if [[ ! -s "$_regtest_found_file" ]]; then
+        regtest_printn >&2 'No matching tests found.'
+        ret=12
+    elif [[ -s "$_regtest_status_file" ]]; then
+        if [[ "$(wc -l <"$_regtest_found_file")" == 1 ]]; then
+            # Don't bother printing a summary if only one test was run.
+            gawk -vr=10 '$3 == "ok" { r = 0 } END { exit r }' "$_regtest_status_file" || ret=$?
+        else
+            regtest_print_summary $(($(date +%s) - _regtest_start_time)) || ret=$?
+        fi
     fi
+
+    if [[ -s "$_regtest_unmatched_glob_file" ]]; then
+        regtest_printn "\e[31;1mError: Unmatched glob%s: %s\e[0m" \
+                "$([[ $(wc -l <"$_regtest_unmatched_glob_file") != 1 ]] && echo s)" \
+                "$(tr '\n' ' ' <"$_regtest_unmatched_glob_file")"
+        ret=12
+    fi
+
+    return $ret
 }
 
 ## regtest_run_suites <dir> <suites...>

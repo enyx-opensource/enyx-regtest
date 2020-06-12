@@ -1,3 +1,4 @@
+[34;2m{[regtest]}[0m Using log/YYYY-MM-DD-hh:mm:ss as log directory.
 [34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m misc[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m misc-dir-output
 [34;2m{[regtest]}[0m Comparing output and reference (dir)...

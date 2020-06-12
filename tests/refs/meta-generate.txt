@@ -1,3 +1,4 @@
+[34;2m{[regtest]}[0m Using log/YYYY-MM-DD-hh:mm:ss as log directory.
 [34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
 [34;2m{[regtest]}[0m Comparing output and reference (txt)...
@@ -15,6 +16,8 @@
 [34;2m{[regtest]}[0m ascii-hello-color               [31mFAILED[39m  (missing-ref)  mm:ss[0m
 [34;2m{[regtest]}[0m ascii-hello-color-bad-ref-fail  [31mFAILED[39m  (missing-ref)  mm:ss[0m
 [34;2m{[regtest]}[0m => [31mFAILED[0m  mm:ss
+[34;2m{[regtest]}[0m Recorded 2 failing test cases: ascii-hello-color ascii-hello-color-bad-ref-fail
+[34;2m{[regtest]}[0m Using log/YYYY-MM-DD-hh:mm:ss as log directory.
 [34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
 [34;2m{[regtest]}[0m Comparing output and reference (txt)...
@@ -32,6 +35,7 @@
 [34;2m{[regtest]}[0m ascii-hello-color               [32mOK[39m  -  mm:ss[0m
 [34;2m{[regtest]}[0m ascii-hello-color-bad-ref-fail  [32mOK[39m  -  mm:ss[0m
 [34;2m{[regtest]}[0m => [32mOK[0m  mm:ss
+[34;2m{[regtest]}[0m Using log/YYYY-MM-DD-hh:mm:ss as log directory.
 [34;2m{[regtest]}[0m [32;1;2m[SUITE RUN][0;1m ascii[0m
 [34;2m{[regtest]}[0m [32;1;2m[RUN][0m ascii-hello-color
 [34;2m{[regtest]}[0m Comparing output and reference (txt)...
